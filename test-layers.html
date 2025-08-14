@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      /* 测试 CSS layers 是否工作 */
+      @layer base, vendor, custom;
+
+      @layer vendor {
+        .test-element {
+          background: red;
+          color: white;
+          position: absolute;
+          cursor: pointer;
+        }
+      }
+
+      @layer custom {
+        .test-element {
+          background: blue;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-element" style="padding: 20px; margin: 20px">
+      Test Element - Should be blue background, white text, absolute position,
+      pointer cursor
+    </div>
+  </body>
+</html>

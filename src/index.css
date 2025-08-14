@@ -1,0 +1,226 @@
+@import url('tailwindcss');
+@import url('react-resizable/css/styles.css');
+@import url('react-grid-layout/css/styles.css');
+
+/* Use CSS Layers, but define overrides directly here, not import within layer */
+@layer base, components, overrides;
+
+@theme {
+  /* Base colors */
+  --color-background: oklch(99% 0 0deg);
+  --color-foreground: oklch(15% 0.015 240deg);
+
+  /* Card colors */
+  --color-card: oklch(100% 0 0deg);
+  --color-card-foreground: oklch(15% 0.015 240deg);
+
+  /* Primary colors - dark blue for main buttons */
+  --color-primary: oklch(25% 0.05 270deg);
+  --color-primary-foreground: oklch(98% 0.005 270deg);
+
+  /* Brand colors - consistent with primary */
+  --color-brand: oklch(25% 0.05 270deg);
+  --color-brand-foreground: oklch(98% 0.005 270deg);
+
+  /* Form input background - white */
+  --color-form-bg: oklch(100% 0 0deg);
+  --color-form-border: oklch(85% 0.005 240deg);
+
+  /* Secondary colors */
+  --color-secondary: oklch(95% 0.01 240deg);
+  --color-secondary-foreground: oklch(15% 0.015 240deg);
+
+  /* Muted colors */
+  --color-muted: oklch(95% 0.01 240deg);
+  --color-muted-foreground: oklch(50% 0.01 240deg);
+
+  /* Accent colors */
+  --color-accent: oklch(95% 0.01 240deg);
+  --color-accent-foreground: oklch(15% 0.015 240deg);
+
+  /* Destructive colors */
+  --color-destructive: oklch(60% 0.15 20deg);
+  --color-destructive-foreground: oklch(98% 0.005 20deg);
+
+  /* Border and input - more visible borders */
+  --color-border: oklch(85% 0.005 240deg);
+  --color-input: oklch(85% 0.005 240deg);
+  --color-ring: oklch(55% 0.08 250deg);
+
+  /* Border radius */
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    border-color: theme(--color-border);
+  }
+
+  body {
+    background-color: theme(--color-background);
+    color: theme(--color-foreground);
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+}
+
+@layer components {
+  /* Prevent dragging area */
+  .no-drag {
+    cursor: default;
+  }
+
+  /* Enhanced visual feedback styles */
+  .react-grid-item {
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    border-radius: 0.75rem;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .react-grid-item:hover {
+    box-shadow:
+      0 0 0 1px rgb(59 130 246 / 40%),
+      0 4px 16px rgb(59 130 246 / 15%),
+      0 8px 32px rgb(59 130 246 / 8%);
+    border-color: rgb(59 130 246 / 30%);
+    transform: translateY(-1px);
+  }
+
+  .react-grid-item.resizing {
+    box-shadow:
+      0 0 0 2px rgb(59 130 246 / 70%),
+      0 8px 25px rgb(59 130 246 / 25%),
+      0 16px 48px rgb(59 130 246 / 15%);
+    border-color: rgb(59 130 246 / 60%);
+    transform: scale(1.02);
+  }
+
+  .react-grid-item.react-draggable-dragging {
+    box-shadow:
+      0 0 0 2px rgb(16 185 129 / 70%),
+      0 12px 32px rgb(16 185 129 / 25%),
+      0 24px 64px rgb(16 185 129 / 15%);
+    border-color: rgb(16 185 129 / 60%);
+    transform: scale(1.05) rotate(1deg);
+  }
+
+  /* Grid layout container styles */
+  .layout {
+    position: relative;
+    /* Remove background, keep transparent */
+    background: transparent;
+    /* Optional: keep border radius and border, or remove them */
+    /* border-radius: 1rem; */
+    /* border: 1px solid rgba(59, 130, 246, 0.1); */
+    /* backdrop-filter: blur(8px); */
+  }
+
+  /* Status indicator animation */
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+@layer overrides {
+  /* Ensure animation is not broken */
+  .react-grid-item {
+    transition: all 200ms ease;
+    transition-property: left, top, width, height;
+  }
+
+  .react-grid-item.cssTransforms {
+    transition-property: transform, width, height;
+  }
+
+  .react-grid-item.react-draggable-dragging {
+    transition: none;
+    z-index: 3;
+    will-change: transform;
+  }
+
+  /* Placeholder styles - maintain original positioning logic */
+  .react-grid-placeholder {
+    background: rgb(59 130 246 / 20%);
+    border: 2px dashed rgb(59 130 246 / 50%);
+    border-radius: 0.5rem;
+    opacity: 1;
+    z-index: 2;
+    transition-duration: 100ms;
+    user-select: none;
+    /* Do not add any properties that might affect positioning */
+  }
+
+  .react-grid-item > .react-resizable-handle::after {
+    display: none;
+  }
+
+  /* Expand touch area */
+  .react-grid-item > .react-resizable-handle.react-resizable-handle-se {
+    width: 24px;
+    height: 24px;
+    right: -3px;
+    bottom: -3px;
+  }
+
+  .react-grid-item > .react-resizable-handle.react-resizable-handle-e {
+    width: 8px;
+    height: calc(100% - 24px);
+    right: -4px;
+    top: 12px;
+  }
+
+  .react-grid-item > .react-resizable-handle.react-resizable-handle-s {
+    width: calc(100% - 24px);
+    height: 8px;
+    bottom: -4px;
+    left: 12px;
+  }
+
+  .react-grid-item > .react-resizable-handle.react-resizable-handle-w {
+    width: 8px;
+    height: calc(100% - 24px);
+    left: -4px;
+    top: 12px;
+  }
+
+  .react-grid-item > .react-resizable-handle.react-resizable-handle-n {
+    width: calc(100% - 24px);
+    height: 8px;
+    top: -4px;
+    left: 12px;
+  }
+
+  .react-grid-item > .react-resizable-handle.react-resizable-handle-sw {
+    width: 16px;
+    height: 16px;
+    left: -3px;
+    bottom: -3px;
+  }
+
+  .react-grid-item > .react-resizable-handle.react-resizable-handle-nw {
+    width: 16px;
+    height: 16px;
+    left: -3px;
+    top: -3px;
+  }
+
+  .react-grid-item > .react-resizable-handle.react-resizable-handle-ne {
+    width: 16px;
+    height: 16px;
+    right: -3px;
+    top: -3px;
+  }
+}
