@@ -1,6 +1,6 @@
 import { Badge } from '@/untitled_ui/base/badges/badges';
 
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { MoreHorizontal } from 'lucide-react';
 
