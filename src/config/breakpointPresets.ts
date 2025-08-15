@@ -20,45 +20,10 @@ export const breakpointPresets: BreakpointConfig[] = [
     cols: { lg: 12, md: 10, sm: 6 },
   },
   {
-    id: 'tailwind',
-    name: 'Tailwind CSS',
-    description: 'Fully consistent with Tailwind CSS breakpoints',
-    breakpoints: { lg: 1024, md: 768, sm: 640 },
-    cols: { lg: 12, md: 8, sm: 4 },
-  },
-  {
-    id: 'material',
-    name: 'Material Design',
-    description: 'Google Material Design recommended breakpoints',
-    breakpoints: { lg: 1280, md: 960, sm: 600 },
-    cols: { lg: 12, md: 8, sm: 4 },
-  },
-  {
-    id: 'compact',
-    name: 'Compact Mode',
-    description: 'Compact mode, triggers mobile layout earlier',
-    breakpoints: { lg: 1024, md: 768, sm: 480 },
-    cols: { lg: 12, md: 8, sm: 4 },
-  },
-  {
-    id: 'wide',
-    name: 'Wide Screen',
-    description: 'Wide screen optimized, suitable for large displays',
-    breakpoints: { lg: 1440, md: 1200, sm: 768 },
-    cols: { lg: 16, md: 12, sm: 6 },
-  },
-  {
-    id: 'mobile-first',
-    name: 'Mobile First',
-    description: 'Mobile-first, more aggressive responsive strategy',
-    breakpoints: { lg: 992, md: 576, sm: 320 },
-    cols: { lg: 12, md: 6, sm: 2 },
-  },
-  {
     id: 'experimental',
-    name: 'Experimental (Test Config)',
+    name: 'Fixed Layout (Original Design)',
     description:
-      'Container width 1280-1680px, 12 columns fixed, content adapts to container width',
+      'Container width 1280-1680px, 12 columns fixed, layout does not change with viewport',
     breakpoints: { lg: 1200, md: 996, sm: 768 },
     cols: { lg: 12, md: 10, sm: 6 },
     containerConfig: {
