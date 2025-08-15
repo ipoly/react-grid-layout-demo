@@ -10,13 +10,14 @@
 - 拖拽式网格布局，支持调整组件位置和大小
 - 响应式设计，适配桌面端、平板和移动端
 - 布局配置持久化保存
-- 7种断点预设配置
+- 2种断点预设配置
 - 基于 Untitled UI React 组件库
 
 ## 技术栈
 
 - **前端**: React 19.1 + TypeScript 5.8
 - **构建**: Vite 7.1.2
+- **包管理**: pnpm 9.15.0
 - **样式**: Tailwind CSS v4
 - **布局**: react-grid-layout 1.5.2
 - **组件**: Untitled UI React
@@ -45,22 +46,32 @@ src/
 │   ├── use-breakpoint.ts       # 断点检测
 │   ├── use-clipboard.ts        # 剪贴板操作
 │   └── use-resize-observer.ts  # 元素大小监听
-├── untitled_ui/                # Untitled UI 组件库
-│   ├── base/                   # 基础组件
-│   ├── application/            # 应用组件
-│   ├── foundations/            # 基础元素
-│   ├── marketing/              # 营销组件
-│   └── shared-assets/          # 共享资源
-├── lib/utils.ts                # 工具函数
-├── utils/                      # 辅助工具
-│   ├── cx.ts                   # 样式合并
-│   └── is-react-component.ts   # 组件检测
-└── App.tsx                     # 主应用入口
+├── untitled_ui/                # Untitled UI 组件库 (第三方)
+│   ├── base/                   # 基础组件 (按钮、输入框、徽章等)
+│   ├── application/            # 应用组件 (导航、表格、模态框等)
+│   ├── foundations/            # 基础元素 (图标、徽标、评分等)
+│   ├── marketing/              # 营销组件 (横幅、博客、CTA等)
+│   └── shared-assets/          # 共享资源 (插图、背景图案等)
+├── assets/                     # 静态资源
+│   └── react.svg               # React 图标
+├── lib/
+│   └── utils.ts                # 通用工具函数 (cn等)
+├── utils/                      # Untitled UI 工具函数
+│   ├── cx.ts                   # 样式合并工具
+│   └── is-react-component.ts   # React 组件检测工具
+├── App.css                     # 应用样式
+├── App.tsx                     # 主应用组件
+├── index.css                   # 全局样式 (Tailwind + 自定义)
+├── main.tsx                    # 应用入口点
+└── vite-env.d.ts              # Vite 类型定义
 ```
 
 ## 快速开始
 
 ```bash
+# 安装 pnpm（如未安装）
+npm install -g pnpm
+
 # 安装依赖
 pnpm install
 
@@ -70,9 +81,13 @@ pnpm dev
 # 构建
 pnpm build
 
-# 代码检查
-pnpm lint
-pnpm format
+# 代码检查和格式化
+pnpm lint          # ESLint 检查
+pnpm lint:fix      # 修复 ESLint 错误
+pnpm format        # Prettier 格式化
+pnpm format:check  # 检查格式化
+pnpm style         # Stylelint 检查
+pnpm style:fix     # 修复样式错误
 ```
 
 ## 组件说明
@@ -86,15 +101,12 @@ pnpm format
 
 ### 断点预设
 
-支持 7 种预设配置：
+支持 2 种预设配置：
 
 - `default` - Bootstrap 风格 (1200/996/768)
-- `tailwind` - Tailwind CSS (1024/768/640)
-- `material` - Material Design (1280/960/600)
-- `compact` - 紧凑模式 (1024/768/480)
-- `wide` - 宽屏优化 (1440/1200/768)
-- `mobile-first` - 移动优先 (992/576/320)
-- `experimental` - 实验性配置
+  - 经典响应式断点，列数：lg: 12, md: 10, sm: 6
+- `experimental` - 固定布局 (原设计稿方案，不随视窗改变)
+  - 容器宽度：1280-1680px，12列固定布局
 
 ## 组件使用
 
