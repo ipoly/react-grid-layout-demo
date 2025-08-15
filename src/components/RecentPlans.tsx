@@ -1,6 +1,7 @@
-import { Input } from '@/untitled_ui/base/input/input';
 import { Button } from '@/untitled_ui/base/buttons/button';
-import { Calendar, Plus, MoreHorizontal, Search } from 'lucide-react';
+import { Input } from '@/untitled_ui/base/input/input';
+
+import { Calendar, MoreHorizontal, Plus, Search } from 'lucide-react';
 
 interface Plan {
   id: string;
@@ -56,7 +57,10 @@ export const RecentPlans = () => {
 
       <div className="space-y-3 flex-1 overflow-y-auto">
         {plans.map((plan) => (
-          <div key={plan.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+          <div
+            key={plan.id}
+            className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
+          >
             <div className="flex-1">
               <div className="font-medium text-gray-900">{plan.name}</div>
             </div>
@@ -76,11 +80,7 @@ export const RecentPlans = () => {
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-100">
-        <Button
-          color="link-color"
-          size="sm"
-          className="text-blue-600"
-        >
+        <Button color="link-color" size="sm" className="text-blue-600">
           View all
         </Button>
       </div>

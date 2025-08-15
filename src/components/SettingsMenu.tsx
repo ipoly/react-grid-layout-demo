@@ -1,15 +1,28 @@
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/untitled_ui/base/buttons/button';
 import { Badge } from '@/untitled_ui/base/badges/badges';
-import { Settings, Check, Monitor, Smartphone, Tablet, Beaker } from 'lucide-react';
-import { breakpointPresets, type BreakpointConfig } from '../config/breakpointPresets';
+import { Button } from '@/untitled_ui/base/buttons/button';
+
+import { useEffect, useRef, useState } from 'react';
+
+import {
+  Beaker,
+  Check,
+  Monitor,
+  Settings,
+  Smartphone,
+  Tablet,
+} from 'lucide-react';
+
+import { breakpointPresets } from '../config/breakpointPresets';
 
 interface SettingsMenuProps {
   currentPreset: string;
   onPresetChange: (presetId: string) => void;
 }
 
-export const SettingsMenu = ({ currentPreset, onPresetChange }: SettingsMenuProps) => {
+export const SettingsMenu = ({
+  currentPreset,
+  onPresetChange,
+}: SettingsMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -40,27 +53,6 @@ export const SettingsMenu = ({ currentPreset, onPresetChange }: SettingsMenuProp
     }
   };
 
-  const getPresetColor = (presetId: string) => {
-    switch (presetId) {
-      case 'default':
-        return 'blue';
-      case 'tailwind':
-        return 'brand';
-      case 'material':
-        return 'success';
-      case 'compact':
-        return 'warning';
-      case 'wide':
-        return 'purple';
-      case 'mobile-first':
-        return 'gray';
-      case 'experimental':
-        return 'orange';
-      default:
-        return 'gray';
-    }
-  };
-
   return (
     <div className="relative" ref={menuRef}>
       <Button
@@ -70,14 +62,18 @@ export const SettingsMenu = ({ currentPreset, onPresetChange }: SettingsMenuProp
         iconLeading={Settings}
         onClick={() => setIsOpen(!isOpen)}
       />
-      
+
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg border border-gray-200 shadow-lg z-50">
           <div className="p-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">Breakpoint Presets</h3>
-            <p className="text-xs text-gray-600 mt-1">Choose different responsive breakpoint configurations</p>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Breakpoint Presets
+            </h3>
+            <p className="text-xs text-gray-600 mt-1">
+              Choose different responsive breakpoint configurations
+            </p>
           </div>
-          
+
           <div className="p-2 max-h-96 overflow-y-auto">
             {breakpointPresets.map((preset) => (
               <button
@@ -110,7 +106,7 @@ export const SettingsMenu = ({ currentPreset, onPresetChange }: SettingsMenuProp
                     </div>
                   </div>
                 </div>
-                
+
                 {/* 断点信息 */}
                 <div className="mt-3 space-y-2">
                   <div className="flex flex-wrap gap-2">
@@ -139,7 +135,7 @@ export const SettingsMenu = ({ currentPreset, onPresetChange }: SettingsMenuProp
                       </Badge>
                     </div>
                   </div>
-                  
+
                   {/* 容器配置信息 */}
                   {preset.containerConfig && (
                     <div className="flex flex-wrap gap-2">
@@ -164,10 +160,11 @@ export const SettingsMenu = ({ currentPreset, onPresetChange }: SettingsMenuProp
               </button>
             ))}
           </div>
-          
+
           <div className="p-3 border-t border-gray-100 bg-gray-50 rounded-b-lg">
             <p className="text-xs text-gray-600">
-              💡 Tip: Changing breakpoint configuration will reset the current layout
+              💡 Tip: Changing breakpoint configuration will reset the current
+              layout
             </p>
           </div>
         </div>

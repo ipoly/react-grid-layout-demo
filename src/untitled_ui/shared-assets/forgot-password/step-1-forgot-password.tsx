@@ -1,7 +1,7 @@
+import { BackgroundPattern } from '@/components/shared-assets/background-patterns';
 import { Button } from '@/untitled_ui/base/buttons/button';
 import { Form } from '@/untitled_ui/base/form/form';
 import { Input } from '@/untitled_ui/base/input/input';
-import { BackgroundPattern } from '@/components/shared-assets/background-patterns';
 import { FeaturedIcon } from '@/untitled_ui/foundations/featured-icon/featured-icon';
 
 import { ArrowLeft, Key01 } from '@untitledui/icons';

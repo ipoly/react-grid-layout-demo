@@ -1,6 +1,6 @@
+import { useClipboard } from '@/hooks/use-clipboard';
 import { Badge } from '@/untitled_ui/base/badges/badges';
 import { Button } from '@/untitled_ui/base/buttons/button';
-import { useClipboard } from '@/hooks/use-clipboard';
 import { Facebook, LinkedIn, X } from '@/untitled_ui/foundations/social-icons';
 
 import { Check, Copy01, Link01 } from '@untitledui/icons';

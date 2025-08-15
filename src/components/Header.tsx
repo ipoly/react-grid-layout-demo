@@ -1,9 +1,12 @@
 import { Avatar } from '@/untitled_ui/base/avatar/avatar';
-import { Button } from '@/untitled_ui/base/buttons/button';
 import { Badge } from '@/untitled_ui/base/badges/badges';
-import { SettingsMenu } from './SettingsMenu';
-import { Bell, HelpCircle, Menu } from 'lucide-react';
+import { Button } from '@/untitled_ui/base/buttons/button';
+
 import { useState } from 'react';
+
+import { Bell, HelpCircle, Menu } from 'lucide-react';
+
+import { SettingsMenu } from './SettingsMenu';
 
 interface HeaderProps {
   userName?: string;
@@ -12,14 +15,14 @@ interface HeaderProps {
   onBreakpointPresetChange?: (presetId: string) => void;
 }
 
-export const Header = ({ 
-  userName = 'Emma', 
+export const Header = ({
+  userName = 'Emma',
   userAvatarUrl,
   currentBreakpointPreset = 'default',
-  onBreakpointPresetChange
+  onBreakpointPresetChange,
 }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   const navigationItems = [
     { name: 'Dashboard', active: true },
     { name: 'Planning' },
@@ -41,9 +44,11 @@ export const Header = ({
             <div className="w-8 h-8 bg-brand rounded-md flex items-center justify-center">
               <span className="text-white font-bold text-sm">RC</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900 hidden sm:block">ChubbyCapital</span>
+            <span className="text-lg font-semibold text-gray-900 hidden sm:block">
+              ChubbyCapital
+            </span>
           </div>
-          
+
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6">
             {navigationItems.map((item) => (
@@ -59,7 +64,7 @@ export const Header = ({
               </button>
             ))}
           </nav>
-          
+
           {/* Mobile Menu Button */}
           <Button
             color="tertiary"
@@ -117,7 +122,7 @@ export const Header = ({
           />
         </div>
       </div>
-      
+
       {/* Mobile Navigation Menu */}
       {isMobileMenuOpen && (
         <div className="lg:hidden mt-4 pt-4 border-t border-gray-200">

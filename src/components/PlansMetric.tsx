@@ -1,5 +1,6 @@
-import { MetricCard } from './MetricCard';
 import { FileText } from 'lucide-react';
+
+import { MetricCard } from './MetricCard';
 
 export const PlansMetric = () => {
   return (
@@ -9,7 +10,7 @@ export const PlansMetric = () => {
       change={{
         value: '20',
         type: 'positive',
-        period: '6/30'
+        period: '6/30',
       }}
       icon={<FileText className="w-6 h-6 text-gray-600" />}
     />

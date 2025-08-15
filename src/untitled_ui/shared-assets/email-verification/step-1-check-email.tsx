@@ -1,5 +1,5 @@
-import { Button } from '@/untitled_ui/base/buttons/button';
 import { BackgroundPattern } from '@/components/shared-assets/background-patterns';
+import { Button } from '@/untitled_ui/base/buttons/button';
 import { FeaturedIcon } from '@/untitled_ui/foundations/featured-icon/featured-icon';
 
 import { ArrowLeft, Mail01 } from '@untitledui/icons';

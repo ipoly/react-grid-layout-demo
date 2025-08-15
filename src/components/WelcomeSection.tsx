@@ -1,6 +1,7 @@
-import { Button } from '@/untitled_ui/base/buttons/button';
 import { Badge } from '@/untitled_ui/base/badges/badges';
-import { Plus, RotateCcw, Layout } from 'lucide-react';
+import { Button } from '@/untitled_ui/base/buttons/button';
+
+import { Layout, Plus, RotateCcw } from 'lucide-react';
 
 interface WelcomeSectionProps {
   userName?: string;
@@ -10,12 +11,12 @@ interface WelcomeSectionProps {
   isMobile?: boolean;
 }
 
-export const WelcomeSection = ({ 
-  userName = 'Emma', 
+export const WelcomeSection = ({
+  userName = 'Emma',
   onResetLayout,
   isDragging = false,
   isResizing = false,
-  isMobile = false
+  isMobile = false,
 }: WelcomeSectionProps) => {
   return (
     <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
@@ -23,7 +24,7 @@ export const WelcomeSection = ({
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
           Welcome back, {userName}
         </h1>
-        
+
         {/* Status indicators - only show on desktop */}
         {!isMobile && (
           <div className="flex items-center gap-2">
@@ -44,7 +45,7 @@ export const WelcomeSection = ({
           </div>
         )}
       </div>
-      
+
       <div className="flex items-center gap-3">
         {!isMobile && (
           <Button
@@ -58,17 +59,13 @@ export const WelcomeSection = ({
             <span className="sm:hidden">Reset</span>
           </Button>
         )}
-        
-        <Button
-          color="primary"
-          size="md"
-          iconLeading={Plus}
-        >
+
+        <Button color="primary" size="md" iconLeading={Plus}>
           <span className="hidden sm:inline">Add Widget</span>
           <span className="sm:hidden">Add</span>
         </Button>
       </div>
-      
+
       {/* Help text - only show on desktop */}
       {!isMobile && (
         <div className="lg:hidden text-sm text-gray-600 flex items-center gap-2 mt-2">

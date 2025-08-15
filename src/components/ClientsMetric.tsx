@@ -1,5 +1,6 @@
-import { MetricCard } from './MetricCard';
 import { Users } from 'lucide-react';
+
+import { MetricCard } from './MetricCard';
 
 export const ClientsMetric = () => {
   return (
@@ -9,7 +10,7 @@ export const ClientsMetric = () => {
       change={{
         value: '2',
         type: 'positive',
-        period: '6/30'
+        period: '6/30',
       }}
       icon={<Users className="w-6 h-6 text-gray-600" />}
     />

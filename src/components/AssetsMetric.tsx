@@ -1,5 +1,6 @@
-import { MetricCard } from './MetricCard';
 import { DollarSign } from 'lucide-react';
+
+import { MetricCard } from './MetricCard';
 
 export const AssetsMetric = () => {
   return (
@@ -9,7 +10,7 @@ export const AssetsMetric = () => {
       change={{
         value: '23K',
         type: 'negative',
-        period: '6/30'
+        period: '6/30',
       }}
       icon={<DollarSign className="w-6 h-6 text-gray-600" />}
     />

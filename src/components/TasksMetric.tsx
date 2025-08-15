@@ -1,5 +1,6 @@
-import { MetricCard } from './MetricCard';
 import { CheckCircle } from 'lucide-react';
+
+import { MetricCard } from './MetricCard';
 
 export const TasksMetric = () => {
   return (

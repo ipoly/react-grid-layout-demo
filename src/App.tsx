@@ -224,12 +224,15 @@ function App() {
   const resetLayout = useCallback(() => {
     setLayouts(defaultLayouts);
     localStorage.setItem('dashboard-layouts', JSON.stringify(defaultLayouts));
-    
+
     // 重置 Activities 组件状态
-    if ((window as any).__resetActivities) {
-      (window as any).__resetActivities();
+    const windowWithReset = window as Window & {
+      __resetActivities?: () => void;
+    };
+    if (windowWithReset.__resetActivities) {
+      windowWithReset.__resetActivities();
     }
-    
+
     console.log('Layout reset to default');
   }, [defaultLayouts]);
 

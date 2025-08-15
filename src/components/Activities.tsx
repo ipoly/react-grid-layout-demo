@@ -1,20 +1,18 @@
-import { Avatar } from '@/untitled_ui/base/avatar/avatar';
 import { Badge } from '@/untitled_ui/base/badges/badges';
 import { Button } from '@/untitled_ui/base/buttons/button';
-import { 
-  Filter, 
-  MoreHorizontal, 
-  MessageSquare, 
-  CheckCircle, 
-  FileText, 
-  Mail, 
-  Archive,
-  DollarSign,
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import {
   Calendar,
-  User,
-  Link2
+  CheckCircle,
+  DollarSign,
+  FileText,
+  Filter,
+  Mail,
+  MessageSquare,
+  MoreHorizontal,
 } from 'lucide-react';
-import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface Activity {
   id: string;
@@ -44,7 +42,7 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
   const [visibleCount, setVisibleCount] = useState(4);
   const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const tabs = ['Activities', 'Tasks', 'Notes', 'Emails', 'Vault', 'Details'];
 
   const activities: Activity[] = [
@@ -55,8 +53,9 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       action: 'created a note for',
       target: 'Taylor Smith',
       time: '2 hours ago',
-      description: 'Retirement\n\nThe probability of success refers to the likelihood that a desired outcome will occur in a given situation or experiment. It\'s a measure of the chance that a particular event or series of events will lead to the intended res...',
-      tags: ['2']
+      description:
+        "Retirement\n\nThe probability of success refers to the likelihood that a desired outcome will occur in a given situation or experiment. It's a measure of the chance that a particular event or series of events will lead to the intended res...",
+      tags: ['2'],
     },
     {
       id: '2',
@@ -65,8 +64,9 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       action: 'created a note for',
       target: 'Taylor Smith',
       time: '2 hours ago',
-      description: 'Phone call\n\nSpoke to Taylor today to explain what the probability of success entails. She was concerned with a 50% pos so we scheduled a meeting to review the plan for next week.',
-      tags: ['2']
+      description:
+        'Phone call\n\nSpoke to Taylor today to explain what the probability of success entails. She was concerned with a 50% pos so we scheduled a meeting to review the plan for next week.',
+      tags: ['2'],
     },
     {
       id: '3',
@@ -77,9 +77,9 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       attachments: [
         { name: 'September2024Tax.doc', type: 'doc' },
         { name: 'September2024Tax.png', type: 'png' },
-        { name: 'September2024Tax.png', type: 'png' }
+        { name: 'September2024Tax.png', type: 'png' },
       ],
-      tags: ['3']
+      tags: ['3'],
     },
     {
       id: '4',
@@ -89,7 +89,7 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       target: 'Taylor Smith',
       time: '2 hours ago',
       description: 'An express plan was created.',
-      tags: ['2']
+      tags: ['2'],
     },
     {
       id: '5',
@@ -97,9 +97,10 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       user: { name: 'Taylor Smith' },
       action: 'has been completed.',
       time: '03/20/2025',
-      description: 'A workflow step for Taylor Smith has been completed.\n\nThe [identify opportunity] step of the [Roth conversion] workflow was completed.',
+      description:
+        'A workflow step for Taylor Smith has been completed.\n\nThe [identify opportunity] step of the [Roth conversion] workflow was completed.',
       progress: 100,
-      tags: ['0']
+      tags: ['0'],
     },
     {
       id: '6',
@@ -108,7 +109,7 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       action: 'created a new opportunity.',
       time: '03/20/2025',
       description: 'Sam Smith\nTarget close: 4/28/2025',
-      tags: ['0']
+      tags: ['0'],
     },
     {
       id: '7',
@@ -117,8 +118,9 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       action: 'created a note for',
       target: 'Wilson Family',
       time: '4 hours ago',
-      description: 'Investment Discussion\n\nDiscussed various investment options with the Wilson family. They are interested in ESG funds and have a moderate risk tolerance. Next steps: prepare portfolio recommendations.',
-      tags: ['1']
+      description:
+        'Investment Discussion\n\nDiscussed various investment options with the Wilson family. They are interested in ESG funds and have a moderate risk tolerance. Next steps: prepare portfolio recommendations.',
+      tags: ['1'],
     },
     {
       id: '8',
@@ -126,9 +128,10 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       user: { name: 'Morgan Lee' },
       action: 'completed task',
       time: '5 hours ago',
-      description: 'Quarterly review completed for Anderson account. All documents have been updated and filed appropriately.',
+      description:
+        'Quarterly review completed for Anderson account. All documents have been updated and filed appropriately.',
       progress: 100,
-      tags: ['0']
+      tags: ['0'],
     },
     {
       id: '9',
@@ -138,9 +141,9 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       time: '6 hours ago',
       attachments: [
         { name: 'Estate_Plan_2025.pdf', type: 'pdf' },
-        { name: 'Trust_Documents.docx', type: 'doc' }
+        { name: 'Trust_Documents.docx', type: 'doc' },
       ],
-      tags: ['2']
+      tags: ['2'],
     },
     {
       id: '10',
@@ -149,8 +152,9 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       action: 'updated opportunity status for',
       target: 'Thompson Account',
       time: '1 day ago',
-      description: 'Retirement Planning Opportunity\n\nMoved to proposal stage. Client review scheduled for next week.',
-      tags: ['1']
+      description:
+        'Retirement Planning Opportunity\n\nMoved to proposal stage. Client review scheduled for next week.',
+      tags: ['1'],
     },
     {
       id: '11',
@@ -159,8 +163,9 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       action: 'created a note for',
       target: 'Martinez Family',
       time: '1 day ago',
-      description: 'Risk Assessment\n\nCompleted comprehensive risk assessment. Family shows conservative risk profile with focus on capital preservation. Recommended bond-heavy portfolio allocation.',
-      tags: ['0']
+      description:
+        'Risk Assessment\n\nCompleted comprehensive risk assessment. Family shows conservative risk profile with focus on capital preservation. Recommended bond-heavy portfolio allocation.',
+      tags: ['0'],
     },
     {
       id: '12',
@@ -168,10 +173,11 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       user: { name: 'Quinn Anderson' },
       action: 'assigned new task',
       time: '2 days ago',
-      description: 'Follow-up required for Cooper insurance review. Schedule meeting to discuss life insurance needs and policy updates.',
+      description:
+        'Follow-up required for Cooper insurance review. Schedule meeting to discuss life insurance needs and policy updates.',
       progress: 25,
-      tags: ['3']
-    }
+      tags: ['3'],
+    },
   ];
 
   const getActivityIcon = (type: string) => {
@@ -215,8 +221,8 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
   // 模拟加载更多功能
   const loadMore = useCallback(async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setVisibleCount(prev => Math.min(prev + 4, activities.length));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setVisibleCount((prev) => Math.min(prev + 4, activities.length));
     setIsLoading(false);
   }, [activities.length]);
 
@@ -227,7 +233,7 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
   // 监听内容变化，触发网格重新计算
   useEffect(() => {
     if (!containerRef.current) return;
-    
+
     const resizeObserver = new ResizeObserver(() => {
       setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
@@ -235,7 +241,7 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
     });
 
     resizeObserver.observe(containerRef.current);
-    
+
     const timer = setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 600);
@@ -256,17 +262,23 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
   useEffect(() => {
     if (onReset) {
       // 将重置函数挂载到全局，供父组件调用
-      (window as any).__resetActivities = resetActivities;
+      const windowWithReset = window as Window & {
+        __resetActivities?: () => void;
+      };
+      windowWithReset.__resetActivities = resetActivities;
     }
     return () => {
-      if ((window as any).__resetActivities) {
-        delete (window as any).__resetActivities;
+      const windowWithReset = window as Window & {
+        __resetActivities?: () => void;
+      };
+      if (windowWithReset.__resetActivities) {
+        delete windowWithReset.__resetActivities;
       }
     };
   }, [onReset, resetActivities]);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="bg-white rounded-lg border border-gray-200 h-full flex flex-col"
     >
@@ -289,11 +301,7 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
             ))}
           </div>
           <div className="flex items-center space-x-2">
-            <Button
-              color="primary"
-              size="sm"
-              iconLeading={Filter}
-            >
+            <Button color="primary" size="sm" iconLeading={Filter}>
               <span className="hidden sm:inline">Filters</span>
               <span className="sm:hidden">Filter</span>
             </Button>
@@ -311,15 +319,20 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 sm:p-5 space-y-4 sm:space-y-6 transition-all duration-500 ease-out">
           {visibleActivities.map((activity, index) => (
-            <div 
-              key={activity.id} 
+            <div
+              key={activity.id}
               className="flex space-x-3 sm:space-x-4 animate-in fade-in slide-in-from-bottom-2 duration-500"
-              style={{ 
-                animationDelay: index >= visibleCount - 4 ? `${(index - (visibleCount - 4)) * 100}ms` : '0ms' 
+              style={{
+                animationDelay:
+                  index >= visibleCount - 4
+                    ? `${(index - (visibleCount - 4)) * 100}ms`
+                    : '0ms',
               }}
             >
               {/* Activity icon */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getActivityColor(activity.type)}`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getActivityColor(activity.type)}`}
+              >
                 {getActivityIcon(activity.type)}
               </div>
 
@@ -328,13 +341,13 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="text-sm text-gray-900 mb-1">
-                      <span className="font-medium">{activity.user.name}</span>
-                      {' '}{activity.action}
+                      <span className="font-medium">{activity.user.name}</span>{' '}
+                      {activity.action}
                       {activity.target && (
                         <span className="font-medium"> {activity.target}</span>
                       )}
                     </div>
-                    
+
                     {activity.description && (
                       <div className="text-sm text-gray-600 mb-3 whitespace-pre-line">
                         {activity.description}
@@ -348,8 +361,8 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
                           <span>{activity.progress}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
+                          <div
+                            className="bg-blue-600 h-2 rounded-full"
                             style={{ width: `${activity.progress}%` }}
                           ></div>
                         </div>
@@ -359,14 +372,20 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
                     {activity.attachments && (
                       <div className="space-y-2 mb-3">
                         {activity.attachments.map((attachment, index) => (
-                          <div key={index} className="flex items-center space-x-2 text-sm">
+                          <div
+                            key={index}
+                            className="flex items-center space-x-2 text-sm"
+                          >
                             <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                            <span className="text-blue-600 truncate">{attachment.name}</span>
-                            {index === activity.attachments!.length - 1 && activity.attachments!.length > 1 && (
-                              <Badge type="pill-color" color="gray" size="sm">
-                                +{activity.attachments!.length - 1}
-                              </Badge>
-                            )}
+                            <span className="text-blue-600 truncate">
+                              {attachment.name}
+                            </span>
+                            {index === activity.attachments!.length - 1 &&
+                              activity.attachments!.length > 1 && (
+                                <Badge type="pill-color" color="gray" size="sm">
+                                  +{activity.attachments!.length - 1}
+                                </Badge>
+                              )}
                           </div>
                         ))}
                       </div>
@@ -377,7 +396,12 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
                     {activity.tags && (
                       <div className="flex space-x-1">
                         {activity.tags.map((tag, index) => (
-                          <Badge key={index} type="pill-color" color="gray" size="sm">
+                          <Badge
+                            key={index}
+                            type="pill-color"
+                            color="gray"
+                            size="sm"
+                          >
                             {tag}
                           </Badge>
                         ))}
