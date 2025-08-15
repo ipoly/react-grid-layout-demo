@@ -13,6 +13,7 @@ import { RecentPlans } from './components/RecentPlans';
 import { Tasks } from './components/Tasks';
 import { TasksMetric } from './components/TasksMetric';
 import { WelcomeSection } from './components/WelcomeSection';
+import { Workflows } from './components/Workflows';
 import { getBreakpointPreset } from './config/breakpointPresets';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -124,6 +125,19 @@ function App() {
           minH: 6,
           maxH: 25,
         },
+
+        // 新增：Workflows 组件
+        {
+          i: 'workflows',
+          x: 0,
+          y: 22,
+          w: 4,
+          h: 6,
+          minW: 3,
+          maxW: 5,
+          minH: 5,
+          maxH: 8,
+        },
       ],
       md: [
         // 平板：指标卡片2x2布局
@@ -136,7 +150,8 @@ function App() {
         { i: 'recent-plans', x: 0, y: 6, w: 4, h: 7 },
         { i: 'tasks', x: 0, y: 13, w: 4, h: 6 },
         { i: 'events', x: 0, y: 19, w: 4, h: 6 },
-        { i: 'activities', x: 4, y: 6, w: 6, h: 19 },
+        { i: 'workflows', x: 0, y: 25, w: 4, h: 6 },
+        { i: 'activities', x: 4, y: 6, w: 6, h: 25 },
       ],
       sm: [
         // 移动端：单列堆叠
@@ -148,7 +163,8 @@ function App() {
         { i: 'recent-plans', x: 0, y: 12, w: 6, h: 7 },
         { i: 'tasks', x: 0, y: 19, w: 6, h: 5 },
         { i: 'events', x: 0, y: 24, w: 6, h: 5 },
-        { i: 'activities', x: 0, y: 29, w: 6, h: 8 },
+        { i: 'workflows', x: 0, y: 29, w: 6, h: 5 },
+        { i: 'activities', x: 0, y: 34, w: 6, h: 8 },
       ],
     }),
     []
@@ -348,6 +364,10 @@ function App() {
 
             <div key="activities" className="bg-transparent h-full">
               <Activities onReset={resetLayout} />
+            </div>
+
+            <div key="workflows" className="bg-transparent h-full">
+              <Workflows />
             </div>
           </ResponsiveGridLayout>
         </div>

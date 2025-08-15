@@ -1,7 +1,15 @@
 import { Button } from '@/untitled_ui/base/buttons/button';
 import { Input } from '@/untitled_ui/base/input/input';
 
-import { Calendar, MoreHorizontal, Plus, Search } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Calendar,
+  MoreHorizontal,
+  Plus,
+  Search,
+} from 'lucide-react';
+
+import { ViewAllLink } from './ui/ViewAllLink';
 
 interface Plan {
   id: string;
@@ -79,11 +87,7 @@ export const RecentPlans = () => {
         ))}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <Button color="link-color" size="sm" className="text-blue-600">
-          View all
-        </Button>
-      </div>
+      <ViewAllLink showIcon={true} icon={ArrowUpRight} align="right" />
     </div>
   );
 };
