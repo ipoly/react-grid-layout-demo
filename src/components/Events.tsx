@@ -2,7 +2,9 @@ import { Avatar } from '@/untitled_ui/base/avatar/avatar';
 import { Badge } from '@/untitled_ui/base/badges/badges';
 import { Button } from '@/untitled_ui/base/buttons/button';
 
-import { FileText, MoreHorizontal, Plus } from 'lucide-react';
+import { ArrowUpRight, FileText, MoreHorizontal, Plus } from 'lucide-react';
+
+import { ViewAllLink } from './ui/ViewAllLink';
 
 interface Event {
   id: string;
@@ -193,11 +195,7 @@ export const Events = () => {
         ))}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-gray-100">
-        <Button color="link-color" size="sm" className="text-blue-600">
-          View all
-        </Button>
-      </div>
+      <ViewAllLink showIcon={true} icon={ArrowUpRight} align="right" />
     </div>
   );
 };
