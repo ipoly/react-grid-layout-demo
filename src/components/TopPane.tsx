@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import type { Layout, Layouts } from 'react-grid-layout';
 
+import { STORAGE_KEYS } from '../config/storage';
 import { AssetsMetric } from './AssetsMetric';
 import { ClientsMetric } from './ClientsMetric';
 import { PlansMetric } from './PlansMetric';
@@ -103,7 +104,7 @@ export const TopPane = ({
   // 从 localStorage 加载布局
   const loadSavedLayouts = (): Layouts => {
     try {
-      const saved = localStorage.getItem('dashboard-top-layouts');
+      const saved = localStorage.getItem(STORAGE_KEYS.TOP_LAYOUTS);
       if (saved) {
         const parsed = JSON.parse(saved);
         return parsed.lg ? parsed : defaultLayouts;
@@ -121,7 +122,7 @@ export const TopPane = ({
     (_layout: Layout[], layouts: Layouts) => {
       setLayouts(layouts);
       try {
-        localStorage.setItem('dashboard-top-layouts', JSON.stringify(layouts));
+        localStorage.setItem(STORAGE_KEYS.TOP_LAYOUTS, JSON.stringify(layouts));
       } catch (error) {
         console.error('Failed to save top pane layout:', error);
       }
@@ -133,10 +134,8 @@ export const TopPane = ({
   useEffect(() => {
     const resetTopPaneLayout = () => {
       setLayouts(defaultLayouts);
-      localStorage.setItem(
-        'dashboard-top-layouts',
-        JSON.stringify(defaultLayouts)
-      );
+      // 删除 localStorage 中的数据，强制使用默认布局
+      localStorage.removeItem(STORAGE_KEYS.TOP_LAYOUTS);
     };
 
     // 将重置函数挂载到 window 对象
@@ -169,7 +168,7 @@ export const TopPane = ({
           onResizeStart={onResizeStart}
           onResizeStop={onResizeStop}
           isDraggable={!isMobile}
-          isResizable={!isMobile}
+          isResizable={false}
           compactType="horizontal"
           maxRows={1}
           useCSSTransforms={true}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ResizableBox } from 'react-resizable';
 
+import { STORAGE_KEYS } from '../config/storage';
 import { Activities } from './Activities';
 
 interface ResizableActivitiesProps {
@@ -26,7 +27,7 @@ export const ResizableActivities = ({
 
   // 从 localStorage 加载保存的列数
   useEffect(() => {
-    const saved = localStorage.getItem('activities-grid-columns');
+    const saved = localStorage.getItem(STORAGE_KEYS.ACTIVITIES_COLUMNS);
     if (saved) {
       const columns = parseInt(saved, 10);
       if (columns >= minColumns && columns <= maxColumns) {
@@ -81,7 +82,10 @@ export const ResizableActivities = ({
       const newColumns = snapToGrid(size.width);
       setCurrentColumns(newColumns);
       // 保存到 localStorage
-      localStorage.setItem('activities-grid-columns', newColumns.toString());
+      localStorage.setItem(
+        STORAGE_KEYS.ACTIVITIES_COLUMNS,
+        newColumns.toString()
+      );
       // 触发布局重新计算
       setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
@@ -99,7 +103,7 @@ export const ResizableActivities = ({
   useEffect(() => {
     const resetWidth = () => {
       setCurrentColumns(defaultColumns);
-      localStorage.removeItem('activities-grid-columns');
+      localStorage.removeItem(STORAGE_KEYS.ACTIVITIES_COLUMNS);
     };
 
     const windowWithReset = window as Window & {

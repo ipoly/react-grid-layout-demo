@@ -6,6 +6,7 @@ import { SidePane } from './components/SidePane';
 import { TopPane } from './components/TopPane';
 import { WelcomeSection } from './components/WelcomeSection';
 import { getBreakpointPreset } from './config/breakpointPresets';
+import { STORAGE_KEYS, cleanupOldVersions } from './config/storage';
 
 function App() {
   // 断点预设状态
@@ -26,9 +27,9 @@ function App() {
   const handleBreakpointPresetChange = useCallback((presetId: string) => {
     setCurrentPreset(presetId);
     // 切换预设时重置布局
-    localStorage.removeItem('dashboard-top-layouts');
-    localStorage.removeItem('dashboard-side-layouts');
-    localStorage.setItem('dashboard-breakpoint-preset', presetId);
+    localStorage.removeItem(STORAGE_KEYS.TOP_LAYOUTS);
+    localStorage.removeItem(STORAGE_KEYS.SIDE_LAYOUTS);
+    localStorage.setItem(STORAGE_KEYS.BREAKPOINT_PRESET, presetId);
 
     // 重置两个面板的布局
     const windowWithReset = window as Window & {
@@ -45,9 +46,12 @@ function App() {
     console.log('Breakpoint preset changed to:', presetId);
   }, []);
 
-  // 从 localStorage 加载预设
+  // 从 localStorage 加载预设，并清理旧版本数据
   useEffect(() => {
-    const saved = localStorage.getItem('dashboard-breakpoint-preset');
+    // 清理旧版本的 localStorage 数据
+    cleanupOldVersions();
+
+    const saved = localStorage.getItem(STORAGE_KEYS.BREAKPOINT_PRESET);
     if (saved) {
       setCurrentPreset(saved);
     }
@@ -67,9 +71,9 @@ function App() {
   // 重置布局
   const resetLayout = useCallback(() => {
     // 清除本地存储
-    localStorage.removeItem('dashboard-top-layouts');
-    localStorage.removeItem('dashboard-side-layouts');
-    localStorage.removeItem('activities-grid-columns');
+    localStorage.removeItem(STORAGE_KEYS.TOP_LAYOUTS);
+    localStorage.removeItem(STORAGE_KEYS.SIDE_LAYOUTS);
+    localStorage.removeItem(STORAGE_KEYS.ACTIVITIES_COLUMNS);
 
     // 重置两个面板的布局和 Activities 组件状态
     const windowWithReset = window as Window & {

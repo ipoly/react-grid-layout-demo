@@ -3,7 +3,6 @@
 /* 基础调整手柄样式 */
 .react-resizable-handle {
   position: absolute;
-  background-image: none !important;
   background-color: transparent;
   transition: all 0.2s ease;
 }
