@@ -91,18 +91,71 @@ const loadLayout = (): Layouts => {
 **⚠️ 优先使用官方组件原则**
 
 - **必须优先**: 如果 Untitled UI 官方库中存在相同功能的组件，必须使用官方版本，不得自行创建
-- **安装方式**: 使用 `npx untitledui@latest add <component>` 安装官方组件
-- **组件路径**: 官方组件统一放置在 `src/components/base/` 目录下
-- **导入规范**: 从 `../components/base/<category>/<component>` 路径导入使用
+- **独立目录管理**: 官方 Untitled UI 组件库位于 `/untitled-ui/` 独立目录
+- **导入规范**: 从 `@untitled-ui/components/` 路径导入官方组件
+- **清晰分离**: 项目自定义组件在 `src/components/`，官方组件在 `untitled-ui/`
+
+**📦 组件库管理策略**
+
+为避免 CLI 工具的路径限制和混乱，我们采用独立目录管理：
+
+- **官方组件库**: `/untitled-ui/` - 包含完整的 Untitled UI 组件库
+- **项目组件**: `/src/components/` - 项目特定的业务组件
+- **优势**:
+  - 避免路径冲突和混乱
+  - 便于整体更新或替换
+  - 清晰的代码组织结构
+  - 独立的版本管理
+
+**🚫 重要管理规则**
+
+- **禁止修改**: `/untitled-ui/` 目录下的文件 **严禁修改**
+- **跳过格式化**: 该目录已配置排除在 lint 和格式化流程之外
+  - `.prettierignore` - 跳过 Prettier 格式化
+  - `.eslintignore` - 跳过 ESLint 检查
+  - `.stylelintrc.json` - 跳过 Stylelint 样式检查
+- **保持原样**: 确保将来能够无冲突地更新官方组件库
+- **自定义方式**: 如需定制，通过 **拷贝** 到 `src/components/` 目录进行
+
+**🔧 组件使用方式**
+
+```typescript
+// 导入官方 Untitled UI 组件
+import { Badge } from '@untitled-ui/components/base/badges/badges';
+import { Button } from '@untitled-ui/components/base/buttons/button';
+import { FeaturedIcon } from '@untitled-ui/components/foundations/featured-icon/featured-icons';
+// 导入 Hooks（从 untitled-ui 导入）
+import { useBreakpoint } from '@untitled-ui/hooks/use-breakpoint';
+import { useClipboard } from '@untitled-ui/hooks/use-clipboard';
+import { useResizeObserver } from '@untitled-ui/hooks/use-resize-observer';
+// 导入工具函数（从 untitled-ui 导入）
+import { cx, sortCx } from '@untitled-ui/utils/cx';
+
+// 导入项目自定义组件（如果将来需要使用 @src 路径）
+// import { MetricCard } from '@src/components/MetricCard';
+// import { GridItem } from '@src/components/ui/GridItem';
+```
 
 **📋 官方可用组件清单**
 基础组件包括：`button`, `badge`, `featured-icon`, `dropdown`, `input`, `textarea`, `toggle`, `checkbox`, `radio`, `avatar`, `tooltip`, `progress`, `slider` 等
 
-**✅ 仅在以下情况下允许自定义组件**
+**✅ 自定义组件创建策略**
 
-1. Untitled UI 官方库中不存在该功能组件
-2. 需要特殊业务逻辑集成的复合组件（如 GridItem）
-3. 项目特定的数据展示组件（如 MetricCard）
+1. **直接使用**: 优先从 `/untitled-ui/` 中导入使用官方组件
+2. **拷贝定制**: 如需修改官方组件，拷贝到 `src/components/` 后自定义
+3. **全新组件**: 创建 Untitled UI 中不存在的功能组件
+4. **业务组件**: 项目特定的数据展示和业务逻辑组件
+
+**📋 组件拷贝定制流程**
+
+```bash
+# 1. 拷贝官方组件到项目目录
+cp untitled-ui/components/base/buttons/button.tsx src/components/ui/custom-button.tsx
+
+# 2. 重命名组件和相关引用
+# 3. 根据需求进行自定义修改
+# 4. 从自定义路径导入使用
+```
 
 ### 组件特点
 
@@ -115,36 +168,48 @@ const loadLayout = (): Layouts => {
 ### 组件使用
 
 ```tsx
-// 官方 Button 组件示例（已安装）
-import { Button } from '../components/base/buttons/button';
+// 导入官方 Untitled UI 组件
+import { Button } from '@untitled-ui/components/base/buttons/button';
+import { Badge } from '@untitled-ui/components/base/badges/badges';
+import { Avatar } from '@untitled-ui/components/base/avatar/avatar';
+import { FeaturedIcon } from '@untitled-ui/components/foundations/featured-icon/featured-icons';
 
+// 使用官方组件
 <Button color="primary" size="sm" iconLeading={Plus}>
   Add Widget
 </Button>
-<Button color="secondary" size="md">Secondary Button</Button>
-<Button color="tertiary" size="lg">Tertiary Button</Button>
-
-// Card 组件示例（自定义，因官方无此组件）
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-
-<Card>
-  <CardHeader>
-    <CardTitle>标题</CardTitle>
-  </CardHeader>
-  <CardContent>
-    内容区域
-  </CardContent>
-</Card>
+<Badge color="brand" size="md">New</Badge>
+<Avatar size="lg" src="/avatar.jpg" />
+<FeaturedIcon color="brand" theme="light" size="lg" icon={CheckCircle} />
 ```
 
 ### 组件使用检查清单
 
 **🔍 添加新组件前必须检查**
 
-1. 在 [Untitled UI 组件库](https://www.untitledui.com/react/components) 中搜索是否存在
-2. 如果存在，使用 `npx untitledui@latest add <component>` 安装
+1. 检查 `/untitled-ui/components/` 目录中是否已有该组件
+2. 如果存在，直接从 `@untitled-ui/components/` 导入使用
 3. 如果不存在，才可以创建自定义组件
-4. 自定义组件放在 `src/components/ui/` 目录下
+4. 自定义组件放在 `src/components/` 或 `src/components/ui/` 目录下
+
+**💡 工具函数说明**
+
+- **cx**: 替代 `cn` 函数，用于合并 Tailwind CSS 类名，支持自定义的 display 类
+- **sortCx**: 帮助在样式对象中排序类名，支持 Tailwind IntelliSense
+- **useBreakpoint**: 检查 Tailwind CSS 断点是否激活
+- **useClipboard**: 管理剪贴板操作
+- **useResizeObserver**: 监听元素大小变化
+
+**📝 导入路径速查**
+
+| 组件类型 | 导入路径示例                                                 |
+| -------- | ------------------------------------------------------------ |
+| 基础组件 | `@untitled-ui/components/base/<category>/<component>`        |
+| 应用组件 | `@untitled-ui/components/application/<category>/<component>` |
+| 基础元素 | `@untitled-ui/components/foundations/<category>/<component>` |
+| 营销组件 | `@untitled-ui/components/marketing/<category>/<component>`   |
+| 工具函数 | `@untitled-ui/utils/<util>`                                  |
+| Hooks    | `@untitled-ui/hooks/<hook>`                                  |
 
 ### 主题自定义
 
@@ -185,32 +250,62 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 ## 项目架构
 
 ```
-src/
-├── components/
-│   ├── base/                    # 官方 Untitled UI 组件
-│   │   └── buttons/
-│   │       └── button.tsx       # 官方 Button 组件
-│   ├── ui/                      # 自定义 UI 组件
-│   │   ├── badge.tsx            # Badge 组件
-│   │   ├── card.tsx             # Card 组件 (官方无此组件)
-│   │   ├── featured-icon.tsx    # Featured Icon 组件
-│   │   ├── grid-item.tsx        # 自定义网格项包装器
-│   │   └── metric-card.tsx      # 指标卡片组件
-│   ├── GridLayout.tsx           # 网格布局容器
-│   └── GridItems.tsx            # 演示网格项组件
-├── lib/
-│   └── utils.ts                 # 工具函数 (cn 等)
-├── utils/                       # Untitled UI 工具函数
-│   ├── cx.ts                    # 样式合并工具
-│   └── is-react-component.ts    # React 组件检测工具
-└── App.tsx                     # 主应用
+/
+├── untitled-ui/                 # 独立的 Untitled UI 组件库
+│   ├── components/
+│   │   ├── application/         # 应用级组件
+│   │   │   ├── app-navigation/ # 导航组件
+│   │   │   ├── date-picker/    # 日期选择器
+│   │   │   ├── modals/         # 模态框
+│   │   │   ├── table/          # 表格
+│   │   │   └── ...
+│   │   ├── base/                # 基础组件
+│   │   │   ├── avatar/         # 头像
+│   │   │   ├── buttons/        # 按钮
+│   │   │   ├── badges/         # 徽章
+│   │   │   ├── input/          # 输入框
+│   │   │   └── ...
+│   │   ├── foundations/        # 基础元素
+│   │   │   ├── featured-icon/  # 特色图标
+│   │   │   ├── social-icons/   # 社交图标
+│   │   │   └── ...
+│   │   └── marketing/          # 营销组件
+│   ├── hooks/                   # React Hooks
+│   ├── utils/                   # 工具函数
+│   └── styles/                  # 样式文件
+├── src/
+│   ├── components/              # 项目自定义组件
+│   │   ├── ui/                  # UI 组件
+│   │   │   ├── ViewAllLink.tsx # 查看全部链接
+│   │   │   └── ...
+│   │   ├── MetricCard.tsx      # 指标卡片
+│   │   ├── Header.tsx          # 页头
+│   │   ├── Tasks.tsx           # 任务组件
+│   │   └── ...
+│   └── App.tsx                 # 主应用
+└── ...
 ```
 
 ### 目录说明
 
-- `src/components/base/` - 存放官方 Untitled UI 组件
-- `src/components/ui/` - 存放自定义 UI 组件
-- `src/utils/` - 存放 Untitled UI 所需的工具函数
+- `/untitled-ui/` - 独立的官方 Untitled UI 组件库目录
+  - `components/` - 所有官方组件（application、base、foundations、marketing）
+  - `hooks/` - 官方提供的 React Hooks（如 useBreakpoint、useClipboard 等）
+  - `utils/` - 官方工具函数（如 cx、sortCx 等）
+  - `styles/` - 官方样式文件
+- `/src/components/` - 项目自定义业务组件
+  - `ui/` - 项目特定的 UI 组件
+  - 其他业务组件文件
+
+### 路径别名配置
+
+- **@untitled-ui**: 映射到 `/untitled-ui/` 目录，用于导入官方组件
+- **@src**: 映射到 `/src/` 目录，用于导入项目自定义组件（可选）
+
+**注意**:
+
+- untitled-ui 内部使用 `@untitled-ui/` 作为路径前缀，避免与主项目冲突
+- 项目不再维护独立的 `src/lib/`、`src/utils/` 和 `src/hooks/` 目录，统一使用 `untitled-ui/` 中的工具函数和 Hooks
 
 ## 代码质量工具
 

@@ -1,0 +1,9 @@
+# Untitled UI 官方组件库目录
+untitled-ui/
+
+# 构建产物
+dist/
+build/
+
+# 依赖
+node_modules/

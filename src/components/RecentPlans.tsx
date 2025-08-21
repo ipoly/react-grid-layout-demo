@@ -1,6 +1,5 @@
-import { Button } from '@/untitled_ui/base/buttons/button';
-import { Input } from '@/untitled_ui/base/input/input';
-
+import { Button } from '@untitled-ui/components/base/buttons/button';
+import { Input } from '@untitled-ui/components/base/input/input';
 import {
   ArrowUpRight,
   Calendar,
