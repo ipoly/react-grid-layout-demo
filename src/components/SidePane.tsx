@@ -213,7 +213,7 @@ export const SidePane = ({
   }, [defaultLayouts]);
 
   return (
-    <div className="w-full lg:w-1/3">
+    <div className="w-full">
       <div
         className={`transition-all duration-200 ${isDragging || isResizing ? 'select-none' : ''}`}
       >

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Activities } from './components/Activities';
 import { Header } from './components/Header';
+import { ResizableActivities } from './components/ResizableActivities';
 import { SidePane } from './components/SidePane';
 import { TopPane } from './components/TopPane';
 import { WelcomeSection } from './components/WelcomeSection';
@@ -69,12 +69,14 @@ function App() {
     // 清除本地存储
     localStorage.removeItem('dashboard-top-layouts');
     localStorage.removeItem('dashboard-side-layouts');
+    localStorage.removeItem('activities-grid-columns');
 
     // 重置两个面板的布局和 Activities 组件状态
     const windowWithReset = window as Window & {
       __resetTopPaneLayout?: () => void;
       __resetSidePaneLayout?: () => void;
       __resetActivities?: () => void;
+      __resetActivitiesWidth?: () => void;
     };
 
     if (windowWithReset.__resetTopPaneLayout) {
@@ -85,6 +87,9 @@ function App() {
     }
     if (windowWithReset.__resetActivities) {
       windowWithReset.__resetActivities();
+    }
+    if (windowWithReset.__resetActivitiesWidth) {
+      windowWithReset.__resetActivitiesWidth();
     }
 
     console.log('Layout reset to default');
@@ -159,21 +164,27 @@ function App() {
 
         {/* 主内容区域 - 侧边栏和活动面板 */}
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* 侧边面板 - 独立的网格布局 */}
-          <SidePane
-            isDragging={isDragging}
-            isResizing={isResizing}
-            isMobile={isMobile}
-            onDragStart={handleDragStart}
-            onDragStop={handleDragStop}
-            onResizeStart={handleResizeStart}
-            onResizeStop={handleResizeStop}
-          />
-
-          {/* 活动面板 - 静态，不可拖动 */}
+          {/* 侧边面板 - 自动适应剩余空间 */}
           <div className="flex-1">
-            <Activities onReset={resetLayout} />
+            <SidePane
+              isDragging={isDragging}
+              isResizing={isResizing}
+              isMobile={isMobile}
+              onDragStart={handleDragStart}
+              onDragStop={handleDragStop}
+              onResizeStart={handleResizeStart}
+              onResizeStop={handleResizeStop}
+            />
           </div>
+
+          {/* 活动面板 - 可调整宽度，栅格化 */}
+          <ResizableActivities
+            onReset={resetLayout}
+            gridColumns={12}
+            minColumns={4}
+            maxColumns={8}
+            defaultColumns={8}
+          />
         </div>
       </main>
     </div>
