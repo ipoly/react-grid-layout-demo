@@ -1,11 +1,6 @@
 {
   "extends": ["stylelint-config-standard"],
-  "ignoreFiles": [
-    "dist/**/*",
-    "src/untitled_ui/**/*",
-    "src/lib/**/*",
-    "src/utils/**/*"
-  ],
+  "ignoreFiles": ["dist/**/*", "untitled-ui/**/*"],
   "rules": {
     "at-rule-no-unknown": [
       true,

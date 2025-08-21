@@ -1,5 +1,4 @@
-import { Button } from '@/untitled_ui/base/buttons/button';
-
+import { Button } from '@untitled-ui/components/base/buttons/button';
 import { ArrowUpRight, MoreHorizontal, Plus } from 'lucide-react';
 
 import { ViewAllLink } from './ui/ViewAllLink';

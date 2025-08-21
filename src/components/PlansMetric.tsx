@@ -12,7 +12,8 @@ export const PlansMetric = () => {
         type: 'positive',
         period: '6/30',
       }}
-      icon={<FileText className="w-6 h-6 text-gray-600" />}
+      icon={FileText}
+      iconColor="gray"
     />
   );
 };

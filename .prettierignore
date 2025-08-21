@@ -1,0 +1,12 @@
+# Untitled UI 官方组件库目录（保持原始格式，禁止修改）
+untitled-ui/
+
+# 构建产物
+dist/
+build/
+
+# 依赖
+node_modules/
+
+# 其他
+pnpm-lock.yaml

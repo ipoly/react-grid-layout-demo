@@ -1,22 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Responsive, WidthProvider } from 'react-grid-layout';
-import type { Layout, Layouts } from 'react-grid-layout';
-
-import { Activities } from './components/Activities';
-import { AssetsMetric } from './components/AssetsMetric';
-import { ClientsMetric } from './components/ClientsMetric';
-import { Events } from './components/Events';
 import { Header } from './components/Header';
-import { PlansMetric } from './components/PlansMetric';
-import { RecentPlans } from './components/RecentPlans';
-import { Tasks } from './components/Tasks';
-import { TasksMetric } from './components/TasksMetric';
+import { ResizableActivities } from './components/ResizableActivities';
+import { SidePane } from './components/SidePane';
+import { TopPane } from './components/TopPane';
 import { WelcomeSection } from './components/WelcomeSection';
-import { Workflows } from './components/Workflows';
 import { getBreakpointPreset } from './config/breakpointPresets';
-
-const ResponsiveGridLayout = WidthProvider(Responsive);
 
 function App() {
   // 断点预设状态
@@ -28,180 +17,33 @@ function App() {
     [currentPreset]
   );
 
-  // 默认布局配置 - 使用12列布局
-  const defaultLayouts: Layouts = useMemo(
-    () => ({
-      lg: [
-        // 顶部4个指标卡片，每个占3列
-        {
-          i: 'clients-metric',
-          x: 0,
-          y: 0,
-          w: 3,
-          h: 2,
-          minW: 2,
-          maxW: 6,
-          minH: 2,
-          maxH: 4,
-        },
-        {
-          i: 'tasks-metric',
-          x: 3,
-          y: 0,
-          w: 3,
-          h: 2,
-          minW: 2,
-          maxW: 6,
-          minH: 2,
-          maxH: 4,
-        },
-        {
-          i: 'assets-metric',
-          x: 6,
-          y: 0,
-          w: 3,
-          h: 2,
-          minW: 2,
-          maxW: 6,
-          minH: 2,
-          maxH: 4,
-        },
-        {
-          i: 'plans-metric',
-          x: 9,
-          y: 0,
-          w: 3,
-          h: 2,
-          minW: 2,
-          maxW: 6,
-          minH: 2,
-          maxH: 4,
-        },
-
-        // 左列：Recent Plans, Tasks, Events (与设计图一致)
-        {
-          i: 'recent-plans',
-          x: 0,
-          y: 3,
-          w: 4,
-          h: 7,
-          minW: 3,
-          maxW: 5,
-          minH: 6,
-          maxH: 10,
-        },
-        {
-          i: 'tasks',
-          x: 0,
-          y: 10,
-          w: 4,
-          h: 6,
-          minW: 3,
-          maxW: 5,
-          minH: 5,
-          maxH: 8,
-        },
-        {
-          i: 'events',
-          x: 0,
-          y: 16,
-          w: 4,
-          h: 6,
-          minW: 3,
-          maxW: 5,
-          minH: 5,
-          maxH: 8,
-        },
-
-        // 右侧大区域：Activities (与设计图一致)
-        {
-          i: 'activities',
-          x: 4,
-          y: 3,
-          w: 8,
-          h: 10,
-          minW: 6,
-          maxW: 12,
-          minH: 6,
-          maxH: 25,
-        },
-
-        // 新增：Workflows 组件
-        {
-          i: 'workflows',
-          x: 0,
-          y: 22,
-          w: 4,
-          h: 6,
-          minW: 3,
-          maxW: 5,
-          minH: 5,
-          maxH: 8,
-        },
-      ],
-      md: [
-        // 平板：指标卡片2x2布局
-        { i: 'clients-metric', x: 0, y: 0, w: 5, h: 3 },
-        { i: 'tasks-metric', x: 5, y: 0, w: 5, h: 3 },
-        { i: 'assets-metric', x: 0, y: 3, w: 5, h: 3 },
-        { i: 'plans-metric', x: 5, y: 3, w: 5, h: 3 },
-
-        // 平板端：左右分栏布局
-        { i: 'recent-plans', x: 0, y: 6, w: 4, h: 7 },
-        { i: 'tasks', x: 0, y: 13, w: 4, h: 6 },
-        { i: 'events', x: 0, y: 19, w: 4, h: 6 },
-        { i: 'workflows', x: 0, y: 25, w: 4, h: 6 },
-        { i: 'activities', x: 4, y: 6, w: 6, h: 25 },
-      ],
-      sm: [
-        // 移动端：单列堆叠
-        { i: 'clients-metric', x: 0, y: 0, w: 6, h: 3 },
-        { i: 'tasks-metric', x: 0, y: 3, w: 6, h: 3 },
-        { i: 'assets-metric', x: 0, y: 6, w: 6, h: 3 },
-        { i: 'plans-metric', x: 0, y: 9, w: 6, h: 3 },
-
-        { i: 'recent-plans', x: 0, y: 12, w: 6, h: 7 },
-        { i: 'tasks', x: 0, y: 19, w: 6, h: 5 },
-        { i: 'events', x: 0, y: 24, w: 6, h: 5 },
-        { i: 'workflows', x: 0, y: 29, w: 6, h: 5 },
-        { i: 'activities', x: 0, y: 34, w: 6, h: 8 },
-      ],
-    }),
-    []
-  );
-
-  // 从 localStorage 加载布局
-  const loadSavedLayouts = (): Layouts => {
-    try {
-      const saved = localStorage.getItem('dashboard-layouts');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        console.log('Loaded saved layout:', parsed);
-        return parsed.lg ? parsed : defaultLayouts;
-      }
-    } catch (error) {
-      console.warn('Failed to load saved layouts:', error);
-    }
-    return defaultLayouts;
-  };
-
-  const [layouts, setLayouts] = useState<Layouts>(loadSavedLayouts);
+  // 状态管理
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // 处理断点预设切换
-  const handleBreakpointPresetChange = useCallback(
-    (presetId: string) => {
-      setCurrentPreset(presetId);
-      // 切换预设时重置布局
-      setLayouts(defaultLayouts);
-      localStorage.setItem('dashboard-layouts', JSON.stringify(defaultLayouts));
-      localStorage.setItem('dashboard-breakpoint-preset', presetId);
-      console.log('Breakpoint preset changed to:', presetId);
-    },
-    [defaultLayouts]
-  );
+  const handleBreakpointPresetChange = useCallback((presetId: string) => {
+    setCurrentPreset(presetId);
+    // 切换预设时重置布局
+    localStorage.removeItem('dashboard-top-layouts');
+    localStorage.removeItem('dashboard-side-layouts');
+    localStorage.setItem('dashboard-breakpoint-preset', presetId);
+
+    // 重置两个面板的布局
+    const windowWithReset = window as Window & {
+      __resetTopPaneLayout?: () => void;
+      __resetSidePaneLayout?: () => void;
+    };
+    if (windowWithReset.__resetTopPaneLayout) {
+      windowWithReset.__resetTopPaneLayout();
+    }
+    if (windowWithReset.__resetSidePaneLayout) {
+      windowWithReset.__resetSidePaneLayout();
+    }
+
+    console.log('Breakpoint preset changed to:', presetId);
+  }, []);
 
   // 从 localStorage 加载预设
   useEffect(() => {
@@ -222,35 +64,36 @@ function App() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // 布局变化处理
-  const handleLayoutChange = useCallback(
-    (_layout: Layout[], layouts: Layouts) => {
-      setLayouts(layouts);
-      try {
-        localStorage.setItem('dashboard-layouts', JSON.stringify(layouts));
-        console.log('Layout saved to localStorage:', layouts);
-      } catch (error) {
-        console.error('Failed to save layout:', error);
-      }
-    },
-    []
-  );
-
   // 重置布局
   const resetLayout = useCallback(() => {
-    setLayouts(defaultLayouts);
-    localStorage.setItem('dashboard-layouts', JSON.stringify(defaultLayouts));
+    // 清除本地存储
+    localStorage.removeItem('dashboard-top-layouts');
+    localStorage.removeItem('dashboard-side-layouts');
+    localStorage.removeItem('activities-grid-columns');
 
-    // 重置 Activities 组件状态
+    // 重置两个面板的布局和 Activities 组件状态
     const windowWithReset = window as Window & {
+      __resetTopPaneLayout?: () => void;
+      __resetSidePaneLayout?: () => void;
       __resetActivities?: () => void;
+      __resetActivitiesWidth?: () => void;
     };
+
+    if (windowWithReset.__resetTopPaneLayout) {
+      windowWithReset.__resetTopPaneLayout();
+    }
+    if (windowWithReset.__resetSidePaneLayout) {
+      windowWithReset.__resetSidePaneLayout();
+    }
     if (windowWithReset.__resetActivities) {
       windowWithReset.__resetActivities();
     }
+    if (windowWithReset.__resetActivitiesWidth) {
+      windowWithReset.__resetActivitiesWidth();
+    }
 
     console.log('Layout reset to default');
-  }, [defaultLayouts]);
+  }, []);
 
   // 拖拽事件处理
   const handleDragStart = useCallback(() => setIsDragging(true), []);
@@ -261,10 +104,6 @@ function App() {
   // 动态断点配置 - 根据选择的预设
   const breakpoints = useMemo(
     () => currentBreakpointConfig.breakpoints,
-    [currentBreakpointConfig]
-  );
-  const cols = useMemo(
-    () => currentBreakpointConfig.cols,
     [currentBreakpointConfig]
   );
 
@@ -311,65 +150,41 @@ function App() {
           isMobile={isMobile}
         />
 
-        <div
-          className={`transition-all duration-200 ${isDragging || isResizing ? 'select-none' : ''}`}
-        >
-          <ResponsiveGridLayout
-            className="layout"
-            layouts={layouts}
-            breakpoints={breakpoints}
-            cols={cols}
-            rowHeight={68}
-            margin={[16, 16]}
-            containerPadding={[0, 0]}
-            onLayoutChange={handleLayoutChange}
-            onDragStart={handleDragStart}
-            onDragStop={handleDragStop}
-            onResizeStart={handleResizeStart}
-            onResizeStop={handleResizeStop}
-            isDraggable={!isMobile}
-            isResizable={!isMobile}
-            compactType="vertical"
-            preventCollision={false}
-          >
-            {/* 4个独立的指标卡片 */}
-            <div key="clients-metric" className="bg-transparent h-full">
-              <ClientsMetric />
-            </div>
+        {/* 顶部面板 - 独立的网格布局 */}
+        <TopPane
+          isDragging={isDragging}
+          isResizing={isResizing}
+          isMobile={isMobile}
+          onDragStart={handleDragStart}
+          onDragStop={handleDragStop}
+          onResizeStart={handleResizeStart}
+          onResizeStop={handleResizeStop}
+          breakpoints={breakpoints}
+        />
 
-            <div key="tasks-metric" className="bg-transparent h-full">
-              <TasksMetric />
-            </div>
+        {/* 主内容区域 - 侧边栏和活动面板 */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* 侧边面板 - 自动适应剩余空间 */}
+          <div className="flex-1">
+            <SidePane
+              isDragging={isDragging}
+              isResizing={isResizing}
+              isMobile={isMobile}
+              onDragStart={handleDragStart}
+              onDragStop={handleDragStop}
+              onResizeStart={handleResizeStart}
+              onResizeStop={handleResizeStop}
+            />
+          </div>
 
-            <div key="assets-metric" className="bg-transparent h-full">
-              <AssetsMetric />
-            </div>
-
-            <div key="plans-metric" className="bg-transparent h-full">
-              <PlansMetric />
-            </div>
-
-            {/* 其他面板组件 */}
-            <div key="recent-plans" className="bg-transparent h-full">
-              <RecentPlans />
-            </div>
-
-            <div key="tasks" className="bg-transparent h-full">
-              <Tasks />
-            </div>
-
-            <div key="events" className="bg-transparent h-full">
-              <Events />
-            </div>
-
-            <div key="activities" className="bg-transparent h-full">
-              <Activities onReset={resetLayout} />
-            </div>
-
-            <div key="workflows" className="bg-transparent h-full">
-              <Workflows />
-            </div>
-          </ResponsiveGridLayout>
+          {/* 活动面板 - 可调整宽度，栅格化 */}
+          <ResizableActivities
+            onReset={resetLayout}
+            gridColumns={12}
+            minColumns={4}
+            maxColumns={8}
+            defaultColumns={8}
+          />
         </div>
       </main>
     </div>

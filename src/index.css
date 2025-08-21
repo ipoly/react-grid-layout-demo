@@ -1,6 +1,7 @@
 @import url('tailwindcss');
 @import url('react-resizable/css/styles.css');
 @import url('react-grid-layout/css/styles.css');
+@import url('./styles/resizable.css');
 
 /* Use CSS Layers, but define overrides directly here, not import within layer */
 @layer base, components, overrides;
