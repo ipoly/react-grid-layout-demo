@@ -1,7 +1,7 @@
-import { Badge } from '@/untitled_ui/base/badges/badges';
+import type { FC, ReactNode } from 'react';
 
-import type { ReactNode } from 'react';
-
+import { Badge } from '@untitled-ui/components/base/badges/badges';
+import { FeaturedIcon } from '@untitled-ui/components/foundations/featured-icon/featured-icons';
 import { MoreHorizontal } from 'lucide-react';
 
 interface MetricCardProps {
@@ -13,7 +13,15 @@ interface MetricCardProps {
     type: 'positive' | 'negative';
     period: string;
   };
-  icon: ReactNode;
+  icon: FC<{ className?: string }> | ReactNode;
+  iconColor?: 'brand' | 'gray' | 'success' | 'warning' | 'error';
+  iconTheme?:
+    | 'light'
+    | 'gradient'
+    | 'dark'
+    | 'outline'
+    | 'modern'
+    | 'modern-neue';
   className?: string;
 }
 
@@ -23,6 +31,8 @@ export const MetricCard = ({
   subtitle,
   change,
   icon,
+  iconColor = 'gray',
+  iconTheme = 'light',
   className = '',
 }: MetricCardProps) => {
   return (
@@ -60,7 +70,14 @@ export const MetricCard = ({
           )}
         </div>
 
-        <div className="ml-4 p-3 bg-gray-50 rounded-lg">{icon}</div>
+        <div className="ml-4">
+          <FeaturedIcon
+            color={iconColor}
+            theme={iconTheme}
+            size="lg"
+            icon={icon}
+          />
+        </div>
       </div>
     </div>
   );

@@ -12,7 +12,8 @@ export const AssetsMetric = () => {
         type: 'negative',
         period: '6/30',
       }}
-      icon={<DollarSign className="w-6 h-6 text-gray-600" />}
+      icon={DollarSign}
+      iconColor="brand"
     />
   );
 };

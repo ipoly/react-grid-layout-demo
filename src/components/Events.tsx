@@ -1,7 +1,6 @@
-import { Avatar } from '@/untitled_ui/base/avatar/avatar';
-import { Badge } from '@/untitled_ui/base/badges/badges';
-import { Button } from '@/untitled_ui/base/buttons/button';
-
+import { Avatar } from '@untitled-ui/components/base/avatar/avatar';
+import { Badge } from '@untitled-ui/components/base/badges/badges';
+import { Button } from '@untitled-ui/components/base/buttons/button';
 import { ArrowUpRight, FileText, MoreHorizontal, Plus } from 'lucide-react';
 
 import { ViewAllLink } from './ui/ViewAllLink';

@@ -1,8 +1,7 @@
-import { Badge } from '@/untitled_ui/base/badges/badges';
-import { Button } from '@/untitled_ui/base/buttons/button';
-
 import { useEffect, useRef, useState } from 'react';
 
+import { Badge } from '@untitled-ui/components/base/badges/badges';
+import { Button } from '@untitled-ui/components/base/buttons/button';
 import {
   Beaker,
   Check,
