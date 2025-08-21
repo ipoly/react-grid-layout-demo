@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import type { Layout, Layouts } from 'react-grid-layout';
 
+import { STORAGE_KEYS } from '../config/storage';
 import { Events } from './Events';
 import { RecentPlans } from './RecentPlans';
 import { Tasks } from './Tasks';
@@ -47,6 +48,7 @@ export const SidePane = ({
           maxW: 1,
           minH: 5,
           maxH: 10,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
         {
           i: 'tasks',
@@ -58,6 +60,7 @@ export const SidePane = ({
           maxW: 1,
           minH: 4,
           maxH: 8,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
         {
           i: 'events',
@@ -69,6 +72,7 @@ export const SidePane = ({
           maxW: 1,
           minH: 4,
           maxH: 8,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
         {
           i: 'workflows',
@@ -80,6 +84,7 @@ export const SidePane = ({
           maxW: 1,
           minH: 4,
           maxH: 8,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
       ],
       md: [
@@ -91,6 +96,7 @@ export const SidePane = ({
           h: 7,
           minW: 1,
           maxW: 1,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
         {
           i: 'tasks',
@@ -100,6 +106,7 @@ export const SidePane = ({
           h: 6,
           minW: 1,
           maxW: 1,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
         {
           i: 'events',
@@ -109,6 +116,7 @@ export const SidePane = ({
           h: 6,
           minW: 1,
           maxW: 1,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
         {
           i: 'workflows',
@@ -118,6 +126,7 @@ export const SidePane = ({
           h: 6,
           minW: 1,
           maxW: 1,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
       ],
       sm: [
@@ -129,6 +138,7 @@ export const SidePane = ({
           h: 7,
           minW: 1,
           maxW: 1,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
         {
           i: 'tasks',
@@ -138,6 +148,7 @@ export const SidePane = ({
           h: 5,
           minW: 1,
           maxW: 1,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
         {
           i: 'events',
@@ -147,6 +158,7 @@ export const SidePane = ({
           h: 5,
           minW: 1,
           maxW: 1,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
         {
           i: 'workflows',
@@ -156,6 +168,7 @@ export const SidePane = ({
           h: 5,
           minW: 1,
           maxW: 1,
+          resizeHandles: ['s'], // 只显示底部调整手柄
         },
       ],
     }),
@@ -165,10 +178,23 @@ export const SidePane = ({
   // 从 localStorage 加载布局
   const loadSavedLayouts = (): Layouts => {
     try {
-      const saved = localStorage.getItem('dashboard-side-layouts');
+      const saved = localStorage.getItem(STORAGE_KEYS.SIDE_LAYOUTS);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.lg ? parsed : defaultLayouts;
+        if (parsed.lg) {
+          // 确保每个布局项都有 resizeHandles 属性
+          const ensureResizeHandles = (layouts: Layouts): Layouts => {
+            const result = { ...layouts };
+            Object.keys(result).forEach((breakpoint) => {
+              result[breakpoint] = result[breakpoint].map((item) => ({
+                ...item,
+                resizeHandles: item.resizeHandles || ['s'], // 默认只显示底部手柄
+              }));
+            });
+            return result;
+          };
+          return ensureResizeHandles(parsed);
+        }
       }
     } catch (error) {
       console.warn('Failed to load saved side pane layouts:', error);
@@ -181,9 +207,22 @@ export const SidePane = ({
   // 布局变化处理
   const handleLayoutChange = useCallback(
     (_layout: Layout[], layouts: Layouts) => {
-      setLayouts(layouts);
+      // 确保保存时保留 resizeHandles 属性
+      const layoutsWithHandles = { ...layouts };
+      Object.keys(layoutsWithHandles).forEach((breakpoint) => {
+        layoutsWithHandles[breakpoint] = layoutsWithHandles[breakpoint].map(
+          (item) => ({
+            ...item,
+            resizeHandles: item.resizeHandles || ['s'], // 确保总是有 resizeHandles
+          })
+        );
+      });
+      setLayouts(layoutsWithHandles);
       try {
-        localStorage.setItem('dashboard-side-layouts', JSON.stringify(layouts));
+        localStorage.setItem(
+          STORAGE_KEYS.SIDE_LAYOUTS,
+          JSON.stringify(layoutsWithHandles)
+        );
       } catch (error) {
         console.error('Failed to save side pane layout:', error);
       }
@@ -195,10 +234,8 @@ export const SidePane = ({
   useEffect(() => {
     const resetSidePaneLayout = () => {
       setLayouts(defaultLayouts);
-      localStorage.setItem(
-        'dashboard-side-layouts',
-        JSON.stringify(defaultLayouts)
-      );
+      // 删除 localStorage 中的数据，强制使用默认布局
+      localStorage.removeItem(STORAGE_KEYS.SIDE_LAYOUTS);
     };
 
     // 将重置函数挂载到 window 对象

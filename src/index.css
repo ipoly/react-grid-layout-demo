@@ -168,8 +168,16 @@
     /* Do not add any properties that might affect positioning */
   }
 
+  /* Show resize handle indicator */
   .react-grid-item > .react-resizable-handle::after {
-    display: none;
+    content: '';
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    width: 5px;
+    height: 5px;
+    border-right: 2px solid rgb(0 0 0 / 40%);
+    border-bottom: 2px solid rgb(0 0 0 / 40%);
   }
 
   /* Expand touch area */
