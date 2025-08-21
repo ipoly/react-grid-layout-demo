@@ -12,7 +12,8 @@ export const ClientsMetric = () => {
         type: 'positive',
         period: '6/30',
       }}
-      icon={<Users className="w-6 h-6 text-gray-600" />}
+      icon={Users}
+      iconColor="gray"
     />
   );
 };
