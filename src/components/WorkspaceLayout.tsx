@@ -5,12 +5,12 @@ import type { Layout, Layouts } from 'react-grid-layout';
 
 import { GRID_CONFIG } from '../config/grid';
 import { STORAGE_KEYS } from '../config/storage';
-import { Activities } from './Activities';
-import { CustomResizeHandle } from './CustomResizeHandle';
-import { Events } from './widgets/Events';
-import { RecentPlans } from './widgets/RecentPlans';
-import { Tasks } from './widgets/Tasks';
-import { Workflows } from './widgets/Workflows';
+import { Activities } from './business/activities/Activities';
+import { Events } from './business/widgets/Events';
+import { RecentPlans } from './business/widgets/RecentPlans';
+import { Tasks } from './business/widgets/Tasks';
+import { Workflows } from './business/widgets/Workflows';
+import { CustomResizeHandle } from './ui/CustomResizeHandle';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 

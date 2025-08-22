@@ -3,7 +3,7 @@ import { Badge } from '@untitled-ui/components/base/badges/badges';
 import { Button } from '@untitled-ui/components/base/buttons/button';
 import { ArrowUpRight, FileText, MoreHorizontal, Plus } from 'lucide-react';
 
-import { ViewAllLink } from '../ui/ViewAllLink';
+import { ViewAllLink } from '../../ui/ViewAllLink';
 
 interface Event {
   id: string;

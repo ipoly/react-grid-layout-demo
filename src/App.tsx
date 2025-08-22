@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Header } from './components/Header';
 import { TopPane } from './components/TopPane';
-import { WelcomeSection } from './components/WelcomeSection';
 import { WorkspaceLayout } from './components/WorkspaceLayout';
+import { Header } from './components/business/Header';
+import { WelcomeSection } from './components/business/WelcomeSection';
 import { getBreakpointPreset } from './config/breakpointPresets';
 import { STORAGE_KEYS, cleanupOldVersions } from './config/storage';
 
