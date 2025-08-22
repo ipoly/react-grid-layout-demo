@@ -5,10 +5,10 @@ import type { Layout, Layouts } from 'react-grid-layout';
 
 import { GRID_CONFIG } from '../config/grid';
 import { STORAGE_KEYS } from '../config/storage';
-import { AssetsMetric } from './metrics/AssetsMetric';
-import { ClientsMetric } from './metrics/ClientsMetric';
-import { PlansMetric } from './metrics/PlansMetric';
-import { TasksMetric } from './metrics/TasksMetric';
+import { AssetsMetric } from './business/metrics/AssetsMetric';
+import { ClientsMetric } from './business/metrics/ClientsMetric';
+import { PlansMetric } from './business/metrics/PlansMetric';
+import { TasksMetric } from './business/metrics/TasksMetric';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 

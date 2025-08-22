@@ -11,7 +11,7 @@ import {
   Tablet,
 } from 'lucide-react';
 
-import { breakpointPresets } from '../config/breakpointPresets';
+import { breakpointPresets } from '../../config/breakpointPresets';
 
 interface SettingsMenuProps {
   currentPreset: string;
