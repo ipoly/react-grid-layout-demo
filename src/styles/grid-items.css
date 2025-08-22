@@ -1,0 +1,244 @@
+/* Unified Grid Item Styles */
+/* 统一的网格项样式，确保所有布局组件的一致性 */
+
+@layer components {
+  /* ========================================
+     Base Grid Item Styles
+     ======================================== */
+
+  /* Default interactive grid items (cards that can be dragged) */
+  .grid-item-interactive {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: move;
+  }
+
+  /* Hover state - subtle lift effect */
+  .grid-item-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 0 0 1px rgb(59 130 246 / 30%),
+      0 4px 16px rgb(59 130 246 / 12%),
+      0 2px 4px rgb(0 0 0 / 4%);
+  }
+
+  /* Dragging state - stronger visual feedback */
+  .grid-item-interactive.react-draggable-dragging {
+    transition: none;
+    opacity: 95%;
+    transform: scale(1.02);
+    box-shadow:
+      0 0 0 2px rgb(59 130 246 / 50%),
+      0 12px 32px rgb(59 130 246 / 20%),
+      0 4px 8px rgb(0 0 0 / 8%);
+    z-index: 100;
+    cursor: grabbing !important;
+  }
+
+  /* Resizing state */
+  .grid-item-interactive.resizing {
+    transition: none;
+    box-shadow:
+      0 0 0 2px rgb(16 185 129 / 50%),
+      0 8px 24px rgb(16 185 129 / 15%),
+      0 2px 6px rgb(0 0 0 / 6%);
+  }
+
+  /* ========================================
+     Container Grid Items (transparent)
+     ======================================== */
+
+  /* Container items that hold other grids */
+  .grid-item-container {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .grid-item-container:hover {
+    transform: none;
+    box-shadow: none;
+    border: none;
+    cursor: default;
+  }
+
+  .grid-item-container.react-draggable-dragging {
+    background: transparent;
+    box-shadow: none;
+    opacity: 100%;
+    transform: none;
+  }
+
+  /* ========================================
+     Sidebar-specific Grid Items
+     ======================================== */
+
+  /* Sidebar items with glass effect */
+  .grid-item-sidebar {
+    backdrop-filter: blur(8px);
+    background: rgb(255 255 255 / 80%);
+    border: 1px solid rgb(59 130 246 / 10%);
+    border-radius: 0.75rem;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: move;
+  }
+
+  .grid-item-sidebar:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 0 0 1px rgb(59 130 246 / 35%),
+      0 6px 20px rgb(59 130 246 / 15%),
+      0 2px 6px rgb(0 0 0 / 5%);
+    border-color: rgb(59 130 246 / 25%);
+  }
+
+  .grid-item-sidebar.react-draggable-dragging {
+    transition: none;
+    opacity: 95%;
+    transform: scale(1.03) rotate(0.5deg);
+    box-shadow:
+      0 0 0 2px rgb(59 130 246 / 60%),
+      0 16px 40px rgb(59 130 246 / 25%),
+      0 6px 12px rgb(0 0 0 / 10%);
+    border-color: rgb(59 130 246 / 50%);
+    z-index: 100;
+    cursor: grabbing !important;
+  }
+
+  .grid-item-sidebar.resizing {
+    transition: none;
+    box-shadow:
+      0 0 0 2px rgb(16 185 129 / 60%),
+      0 12px 32px rgb(16 185 129 / 20%),
+      0 4px 8px rgb(0 0 0 / 8%);
+    border-color: rgb(16 185 129 / 50%);
+    transform: scale(1.02);
+  }
+
+  /* ========================================
+     Metrics Bar Grid Items
+     ======================================== */
+
+  /* Metrics cards */
+  .grid-item-metric {
+    transition: all 200ms ease;
+    cursor: move;
+  }
+
+  .grid-item-metric:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 0 0 1px rgb(59 130 246 / 25%),
+      0 4px 12px rgb(59 130 246 / 10%),
+      0 1px 3px rgb(0 0 0 / 4%);
+  }
+
+  .grid-item-metric.react-draggable-dragging {
+    transition: none;
+    opacity: 90%;
+    transform: scale(1.01);
+    box-shadow:
+      0 0 0 2px rgb(59 130 246 / 45%),
+      0 8px 24px rgb(59 130 246 / 18%),
+      0 2px 6px rgb(0 0 0 / 8%);
+    z-index: 100;
+    cursor: grabbing !important;
+  }
+
+  /* ========================================
+     Placeholder Styles
+     ======================================== */
+
+  /* Default placeholder */
+  .grid-placeholder-default {
+    background: rgb(59 130 246 / 15%);
+    border: 2px dashed rgb(59 130 246 / 40%);
+    border-radius: 0.5rem;
+    opacity: 100%;
+    z-index: 2;
+    transition-duration: 100ms;
+    user-select: none;
+  }
+
+  /* Sidebar placeholder */
+  .grid-placeholder-sidebar {
+    background: rgb(59 130 246 / 20%);
+    border: 2px dashed rgb(59 130 246 / 50%);
+    border-radius: 0.75rem;
+  }
+
+  /* Metrics placeholder */
+  .grid-placeholder-metric {
+    background: rgb(59 130 246 / 12%);
+    border: 2px dashed rgb(59 130 246 / 35%);
+    border-radius: 0.5rem;
+  }
+}
+
+@layer overrides {
+  /* ========================================
+     Responsive Adjustments
+     ======================================== */
+
+  /* Disable hover effects on touch devices */
+  @media (hover: none) and (pointer: coarse) {
+    .grid-item-interactive:hover,
+    .grid-item-sidebar:hover,
+    .grid-item-metric:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  /* Mobile specific */
+  @media (width <= 768px) {
+    .grid-item-interactive,
+    .grid-item-sidebar,
+    .grid-item-metric {
+      cursor: default;
+    }
+
+    .grid-item-interactive:hover,
+    .grid-item-sidebar:hover,
+    .grid-item-metric:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  /* ========================================
+     Resize Handle Indicators
+     ======================================== */
+
+  /* Sidebar resize handle */
+  .grid-item-sidebar > .react-resizable-handle::after {
+    content: '';
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    width: 5px;
+    height: 5px;
+    border-right: 2px solid rgb(156 163 175 / 40%);
+    border-bottom: 2px solid rgb(156 163 175 / 40%);
+  }
+
+  .grid-item-sidebar > .react-resizable-handle:hover::after {
+    border-color: rgb(59 130 246 / 60%);
+  }
+
+  /* ========================================
+     Animation Performance
+     ======================================== */
+
+  /* Ensure smooth animations */
+  .grid-item-interactive,
+  .grid-item-sidebar,
+  .grid-item-metric {
+    will-change: auto;
+  }
+
+  .grid-item-interactive.react-draggable-dragging,
+  .grid-item-sidebar.react-draggable-dragging,
+  .grid-item-metric.react-draggable-dragging {
+    will-change: transform;
+  }
+}
