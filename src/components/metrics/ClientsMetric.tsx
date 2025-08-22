@@ -1,6 +1,6 @@
 import { Users } from 'lucide-react';
 
-import { MetricCard } from './MetricCard';
+import { MetricCard } from '../MetricCard';
 
 export const ClientsMetric = () => {
   return (

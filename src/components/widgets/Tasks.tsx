@@ -7,7 +7,7 @@ import {
   Plus,
 } from 'lucide-react';
 
-import { ViewAllLink } from './ui/ViewAllLink';
+import { ViewAllLink } from '../ui/ViewAllLink';
 
 interface Task {
   id: string;

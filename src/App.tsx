@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Header } from './components/Header';
-import { ResizableActivities } from './components/ResizableActivities';
-import { SidePane } from './components/SidePane';
 import { TopPane } from './components/TopPane';
 import { WelcomeSection } from './components/WelcomeSection';
+import { WorkspaceLayout } from './components/WorkspaceLayout';
 import { getBreakpointPreset } from './config/breakpointPresets';
 import { STORAGE_KEYS, cleanupOldVersions } from './config/storage';
 
@@ -34,13 +33,13 @@ function App() {
     // 重置两个面板的布局
     const windowWithReset = window as Window & {
       __resetTopPaneLayout?: () => void;
-      __resetSidePaneLayout?: () => void;
+      __resetWorkspaceLayout?: () => void;
     };
     if (windowWithReset.__resetTopPaneLayout) {
       windowWithReset.__resetTopPaneLayout();
     }
-    if (windowWithReset.__resetSidePaneLayout) {
-      windowWithReset.__resetSidePaneLayout();
+    if (windowWithReset.__resetWorkspaceLayout) {
+      windowWithReset.__resetWorkspaceLayout();
     }
 
     console.log('Breakpoint preset changed to:', presetId);
@@ -75,25 +74,17 @@ function App() {
     localStorage.removeItem(STORAGE_KEYS.SIDE_LAYOUTS);
     localStorage.removeItem(STORAGE_KEYS.ACTIVITIES_COLUMNS);
 
-    // 重置两个面板的布局和 Activities 组件状态
+    // 重置两个面板的布局
     const windowWithReset = window as Window & {
       __resetTopPaneLayout?: () => void;
-      __resetSidePaneLayout?: () => void;
-      __resetActivities?: () => void;
-      __resetActivitiesWidth?: () => void;
+      __resetWorkspaceLayout?: () => void;
     };
 
     if (windowWithReset.__resetTopPaneLayout) {
       windowWithReset.__resetTopPaneLayout();
     }
-    if (windowWithReset.__resetSidePaneLayout) {
-      windowWithReset.__resetSidePaneLayout();
-    }
-    if (windowWithReset.__resetActivities) {
-      windowWithReset.__resetActivities();
-    }
-    if (windowWithReset.__resetActivitiesWidth) {
-      windowWithReset.__resetActivitiesWidth();
+    if (windowWithReset.__resetWorkspaceLayout) {
+      windowWithReset.__resetWorkspaceLayout();
     }
 
     console.log('Layout reset to default');
@@ -154,7 +145,7 @@ function App() {
           isMobile={isMobile}
         />
 
-        {/* 顶部面板 - 独立的网格布局 */}
+        {/* 顶部面板 - 指标卡片 */}
         <TopPane
           isDragging={isDragging}
           isResizing={isResizing}
@@ -166,30 +157,16 @@ function App() {
           breakpoints={breakpoints}
         />
 
-        {/* 主内容区域 - 侧边栏和活动面板 */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* 侧边面板 - 自动适应剩余空间 */}
-          <div className="flex-1">
-            <SidePane
-              isDragging={isDragging}
-              isResizing={isResizing}
-              isMobile={isMobile}
-              onDragStart={handleDragStart}
-              onDragStop={handleDragStop}
-              onResizeStart={handleResizeStart}
-              onResizeStop={handleResizeStop}
-            />
-          </div>
-
-          {/* 活动面板 - 可调整宽度，栅格化 */}
-          <ResizableActivities
-            onReset={resetLayout}
-            gridColumns={12}
-            minColumns={4}
-            maxColumns={8}
-            defaultColumns={8}
-          />
-        </div>
+        {/* 工作区布局 - 侧边栏小部件 + Activities面板 */}
+        <WorkspaceLayout
+          isDragging={isDragging}
+          isResizing={isResizing}
+          isMobile={isMobile}
+          onDragStart={handleDragStart}
+          onDragStop={handleDragStop}
+          onResizeStart={handleResizeStart}
+          onResizeStop={handleResizeStop}
+        />
       </main>
     </div>
   );

@@ -8,7 +8,7 @@ import {
   Search,
 } from 'lucide-react';
 
-import { ViewAllLink } from './ui/ViewAllLink';
+import { ViewAllLink } from '../ui/ViewAllLink';
 
 interface Plan {
   id: string;

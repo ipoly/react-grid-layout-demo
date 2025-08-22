@@ -50,6 +50,12 @@
 
   /* Border radius */
   --radius: 0.5rem;
+
+  /* Grid system variables */
+  --grid-row-height: 68px;
+  --grid-gap: 16px;
+  --grid-margin-x: 16px;
+  --grid-margin-y: 16px;
 }
 
 @layer base {
@@ -67,13 +73,8 @@
 }
 
 @layer components {
-  /* Prevent dragging area */
-  .no-drag {
-    cursor: default;
-  }
-
-  /* Enhanced visual feedback styles */
-  .react-grid-item {
+  /* Enhanced visual feedback styles for grid items (excluding main layout containers) */
+  .react-grid-item:not(.main-layout > .react-grid-item) {
     backdrop-filter: blur(8px);
     background: rgb(255 255 255 / 80%);
     border: 1px solid rgb(59 130 246 / 10%);
@@ -81,7 +82,7 @@
     transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .react-grid-item:hover {
+  .react-grid-item:not(.main-layout > .react-grid-item):hover {
     box-shadow:
       0 0 0 1px rgb(59 130 246 / 40%),
       0 4px 16px rgb(59 130 246 / 15%),
@@ -90,7 +91,7 @@
     transform: translateY(-1px);
   }
 
-  .react-grid-item.resizing {
+  .react-grid-item.resizing:not(.main-layout > .react-grid-item) {
     box-shadow:
       0 0 0 2px rgb(59 130 246 / 70%),
       0 8px 25px rgb(59 130 246 / 25%),
@@ -99,7 +100,9 @@
     transform: scale(1.02);
   }
 
-  .react-grid-item.react-draggable-dragging {
+  .react-grid-item.react-draggable-dragging:not(
+      .main-layout > .react-grid-item
+    ) {
     box-shadow:
       0 0 0 2px rgb(16 185 129 / 70%),
       0 12px 32px rgb(16 185 129 / 25%),
@@ -108,34 +111,24 @@
     transform: scale(1.05) rotate(1deg);
   }
 
-  /* Grid layout container styles */
-  .layout {
-    position: relative;
-
-    /* Remove background, keep transparent */
+  /* Main layout containers - transparent and no visual styles */
+  .main-layout > .react-grid-item {
     background: transparent;
-
-    /* Optional: keep border radius and border, or remove them */
-    /* border-radius: 1rem; */
-    /* border: 1px solid rgba(59, 130, 246, 0.1); */
-    /* backdrop-filter: blur(8px); */
+    border: none;
+    box-shadow: none;
   }
 
-  /* Status indicator animation */
-  .animate-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  .main-layout > .react-grid-item:hover {
+    transform: none;
+    box-shadow: none;
+    border: none;
   }
 
-  @keyframes pulse {
-    0%,
-    100% {
-      opacity: 100%;
-    }
-
-    50% {
-      opacity: 50%;
-    }
-  }
+  /* Grid layout container styles (currently unused but kept for future) */
+  /* .layout {
+    position: relative;
+    background: transparent;
+  } */
 }
 
 @layer overrides {
@@ -168,8 +161,9 @@
     /* Do not add any properties that might affect positioning */
   }
 
-  /* Show resize handle indicator */
-  .react-grid-item > .react-resizable-handle::after {
+  /* Show resize handle indicator for all grid items except main layout containers */
+  .react-grid-item:not(.main-layout > .react-grid-item)
+    > .react-resizable-handle::after {
     content: '';
     position: absolute;
     right: 3px;
@@ -180,7 +174,7 @@
     border-bottom: 2px solid rgb(0 0 0 / 40%);
   }
 
-  /* Expand touch area */
+  /* Expand touch area - for all resize handles */
   .react-grid-item > .react-resizable-handle.react-resizable-handle-se {
     width: 24px;
     height: 24px;
