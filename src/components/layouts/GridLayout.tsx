@@ -236,7 +236,7 @@ export const GridLayout = ({
       resizeHandle={resizeHandle}
     >
       {items.map((item) => (
-        <div key={item.id} className="bg-transparent h-full">
+        <div key={item.id} className={`h-full ${item.className || ''}`}>
           {item.component}
         </div>
       ))}

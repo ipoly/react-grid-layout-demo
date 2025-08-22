@@ -5,7 +5,6 @@ import type { Layout, Layouts } from 'react-grid-layout';
 
 import { GRID_CONFIG } from '../../config/grid';
 import { CustomResizeHandle } from '../ui/CustomResizeHandle';
-import './DualPaneLayout.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -355,12 +354,12 @@ export const DualPaneLayout = ({
           allowOverlap={true}
           preventCollision={false}
           autoSize={false}
-          resizeHandle={<CustomResizeHandle handleAxis="x" />}
+          resizeHandle={<CustomResizeHandle handleAxis="w" />}
         >
           {/* 左面板 */}
           <div
             key="left-pane"
-            className={`bg-transparent h-full ${leftPaneClassName}`}
+            className={`grid-item-container h-full ${leftPaneClassName}`}
           >
             {leftContent}
           </div>
@@ -368,7 +367,7 @@ export const DualPaneLayout = ({
           {/* 右面板 */}
           <div
             key="right-pane"
-            className={`bg-transparent relative h-full ${rightPaneClassName}`}
+            className={`grid-item-container relative h-full ${rightPaneClassName}`}
           >
             {isResizingPane && resizeHandlePosition === 'right' && (
               <div className="absolute -top-8 left-4 bg-gray-900 text-white px-2 py-1 rounded text-xs z-50">

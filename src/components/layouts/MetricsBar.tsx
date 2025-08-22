@@ -1,6 +1,7 @@
 import { ReactNode, useMemo } from 'react';
 
-import { GridItemConfig, GridLayout } from './GridLayout';
+import { GridLayout } from './GridLayout';
+import type { GridItemConfig } from './GridLayout';
 
 export interface MetricConfig {
   id: string;
@@ -119,7 +120,7 @@ export const MetricsBar = ({
         },
         minSize: { w: 2, h: 2 },
         maxSize: { w: 4, h: 3 },
-        className: metric.className,
+        className: `grid-item-metric ${metric.className || ''}`,
       };
     });
   }, [metrics, columns.desktop]);

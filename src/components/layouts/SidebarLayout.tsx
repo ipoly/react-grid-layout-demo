@@ -4,7 +4,6 @@ import GridLayout, { WidthProvider } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 
 import { GRID_CONFIG } from '../../config/grid';
-import './SidebarLayout.css';
 
 const ResponsiveGridLayout = WidthProvider(GridLayout);
 
@@ -273,7 +272,7 @@ export const SidebarLayout = ({
           {widgets.map((widget) => (
             <div
               key={widget.id}
-              className={`bg-transparent h-full ${widget.className || ''}`}
+              className={`grid-item-sidebar h-full ${widget.className || ''}`}
             >
               {widget.component}
             </div>
