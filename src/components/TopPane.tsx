@@ -3,11 +3,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import type { Layout, Layouts } from 'react-grid-layout';
 
+import { GRID_CONFIG } from '../config/grid';
 import { STORAGE_KEYS } from '../config/storage';
-import { AssetsMetric } from './AssetsMetric';
-import { ClientsMetric } from './ClientsMetric';
-import { PlansMetric } from './PlansMetric';
-import { TasksMetric } from './TasksMetric';
+import { AssetsMetric } from './metrics/AssetsMetric';
+import { ClientsMetric } from './metrics/ClientsMetric';
+import { PlansMetric } from './metrics/PlansMetric';
+import { TasksMetric } from './metrics/TasksMetric';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -159,9 +160,9 @@ export const TopPane = ({
           layouts={layouts}
           breakpoints={breakpoints}
           cols={topPaneCols}
-          rowHeight={68}
-          margin={[16, 16]}
-          containerPadding={[0, 0]}
+          rowHeight={GRID_CONFIG.ROW_HEIGHT}
+          margin={GRID_CONFIG.MARGIN}
+          containerPadding={GRID_CONFIG.CONTAINER_PADDING}
           onLayoutChange={handleLayoutChange}
           onDragStart={onDragStart}
           onDragStop={onDragStop}

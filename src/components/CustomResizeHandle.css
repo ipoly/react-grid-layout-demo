@@ -1,0 +1,42 @@
+/* CustomResizeHandle 组件样式 */
+
+/* 基础样式 - 西边（左侧）手柄 */
+.custom-resize-handle-west {
+  position: absolute;
+  right: calc(100% - 4px);
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+/* 垂直分割线 - 避开圆角区域 */
+.custom-resize-handle-west .handle-line {
+  position: absolute;
+  right: 2px;
+  top: 12px; /* 避开顶部圆角 */
+  bottom: 12px; /* 避开底部圆角 */
+  width: 0;
+  height: calc(100% - 24px); /* 减去上下间距 */
+  background-color: cornflowerblue;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* ========== Demo 特性：父元素 hover 时高亮 ========== */
+
+*:hover > .custom-resize-handle-west .handle-line {
+  width: 6px; /* 加粗到 3px，更明显 */
+}
+
+/* ========== 响应式处理 ========== */
+@media (width <= 1024px) {
+  .custom-resize-handle-west {
+    display: none;
+  }
+}
+
+/* ========== 其他方向的手柄（使用默认样式） ========== */
+/* 保持 react-resizable 的默认样式 */
