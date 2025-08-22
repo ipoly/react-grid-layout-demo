@@ -79,15 +79,15 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --max-warnings 0",
+      "prettier --check"
     ],
     "*.{css,scss}": [
-      "stylelint --fix",
-      "prettier --write"
+      "stylelint",
+      "prettier --check"
     ],
-    "*.{json,md}": [
-      "prettier --write"
+    "*.{json,md,yml,yaml}": [
+      "prettier --check"
     ]
   }
 }
