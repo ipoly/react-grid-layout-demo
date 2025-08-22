@@ -14,7 +14,7 @@ import { STORAGE_KEYS, cleanupOldVersions } from './config/storage';
 
 function App() {
   // 断点预设状态
-  const [currentPreset, setCurrentPreset] = useState('default');
+  const [currentPreset, setCurrentPreset] = useState('experimental');
 
   // 动态获取当前断点配置
   const currentBreakpointConfig = useMemo(

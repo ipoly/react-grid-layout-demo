@@ -13,13 +13,6 @@ export interface BreakpointConfig {
 
 export const breakpointPresets: BreakpointConfig[] = [
   {
-    id: 'default',
-    name: 'Default (Bootstrap-like)',
-    description: 'Classic responsive breakpoints, suitable for most scenarios',
-    breakpoints: { lg: 1200, md: 996, sm: 768 },
-    cols: { lg: 12, md: 10, sm: 6 },
-  },
-  {
     id: 'experimental',
     name: 'Fixed Layout (Original Design)',
     description:
@@ -31,6 +24,13 @@ export const breakpointPresets: BreakpointConfig[] = [
       maxWidth: 1680,
       adaptive: true,
     },
+  },
+  {
+    id: 'default',
+    name: 'Default (Bootstrap-like)',
+    description: 'Classic responsive breakpoints, suitable for most scenarios',
+    breakpoints: { lg: 1200, md: 996, sm: 768 },
+    cols: { lg: 12, md: 10, sm: 6 },
   },
 ];
 
