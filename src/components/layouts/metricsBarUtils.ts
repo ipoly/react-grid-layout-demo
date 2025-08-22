@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
-import { MetricConfig } from './MetricsBar';
+import type { MetricConfig } from './MetricsBar';
 
 // 导出一个简化的预设配置函数
 export const createMetricsConfig = (
