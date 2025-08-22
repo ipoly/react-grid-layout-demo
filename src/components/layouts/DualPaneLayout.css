@@ -1,0 +1,10 @@
+/* DualPaneLayout specific styles */
+/* Most styles moved to grid-items.css for consistency */
+
+@layer components {
+  /* Dual pane items should remain transparent containers */
+  .dual-pane-layout .react-grid-placeholder {
+    background: transparent;
+    border: none;
+  }
+}

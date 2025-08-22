@@ -1,15 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Header } from './components/Header';
-import { TopPane } from './components/TopPane';
-import { WelcomeSection } from './components/WelcomeSection';
 import { WorkspaceLayout } from './components/WorkspaceLayout';
+import { Header } from './components/business/Header';
+import { WelcomeSection } from './components/business/WelcomeSection';
+import { AssetsMetric } from './components/business/metrics/AssetsMetric';
+import { ClientsMetric } from './components/business/metrics/ClientsMetric';
+import { PlansMetric } from './components/business/metrics/PlansMetric';
+import { TasksMetric } from './components/business/metrics/TasksMetric';
+import { MetricsBar } from './components/layouts/MetricsBar';
+import type { MetricConfig } from './components/layouts/MetricsBar';
 import { getBreakpointPreset } from './config/breakpointPresets';
 import { STORAGE_KEYS, cleanupOldVersions } from './config/storage';
 
 function App() {
   // 断点预设状态
-  const [currentPreset, setCurrentPreset] = useState('default');
+  const [currentPreset, setCurrentPreset] = useState('experimental');
 
   // 动态获取当前断点配置
   const currentBreakpointConfig = useMemo(
@@ -128,6 +133,37 @@ function App() {
     return baseClasses;
   }, [currentBreakpointConfig]);
 
+  // 指标配置
+  const metricsConfig: MetricConfig[] = useMemo(
+    () => [
+      {
+        id: 'clients-metric',
+        component: <ClientsMetric />,
+        size: 'medium',
+        priority: 1,
+      },
+      {
+        id: 'tasks-metric',
+        component: <TasksMetric />,
+        size: 'medium',
+        priority: 2,
+      },
+      {
+        id: 'assets-metric',
+        component: <AssetsMetric />,
+        size: 'medium',
+        priority: 3,
+      },
+      {
+        id: 'plans-metric',
+        component: <PlansMetric />,
+        size: 'medium',
+        priority: 4,
+      },
+    ],
+    []
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="sticky top-0 z-50">
@@ -145,17 +181,30 @@ function App() {
           isMobile={isMobile}
         />
 
-        {/* 顶部面板 - 指标卡片 */}
-        <TopPane
-          isDragging={isDragging}
-          isResizing={isResizing}
-          isMobile={isMobile}
-          onDragStart={handleDragStart}
-          onDragStop={handleDragStop}
-          onResizeStart={handleResizeStart}
-          onResizeStop={handleResizeStop}
-          breakpoints={breakpoints}
-        />
+        {/* 顶部指标栏 */}
+        <div className="mb-6">
+          <div
+            className={`transition-all duration-200 ${isDragging || isResizing ? 'select-none' : ''}`}
+          >
+            <MetricsBar
+              metrics={metricsConfig}
+              columns={{ desktop: 4, tablet: 2 }}
+              tabletBehavior="grid"
+              breakpoints={breakpoints}
+              reorderable={true}
+              draggable={!isMobile}
+              resizable={false}
+              storageKey={STORAGE_KEYS.TOP_LAYOUTS}
+              autoSave={true}
+              isMobile={isMobile}
+              onDragStart={handleDragStart}
+              onDragStop={handleDragStop}
+              onResizeStart={handleResizeStart}
+              onResizeStop={handleResizeStop}
+              compact={false}
+            />
+          </div>
+        </div>
 
         {/* 工作区布局 - 侧边栏小部件 + Activities面板 */}
         <WorkspaceLayout

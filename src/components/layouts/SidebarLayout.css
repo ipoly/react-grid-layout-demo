@@ -1,0 +1,11 @@
+/* SidebarLayout specific styles */
+/* Most styles moved to grid-items.css for consistency */
+
+@layer components {
+  /* Sidebar-specific placeholder styling override if needed */
+  .sidebar-layout .react-grid-placeholder {
+    background: rgb(59 130 246 / 20%);
+    border: 2px dashed rgb(59 130 246 / 50%);
+    border-radius: 0.75rem;
+  }
+}

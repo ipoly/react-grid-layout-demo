@@ -1,6 +1,6 @@
 import { FileText } from 'lucide-react';
 
-import { MetricCard } from '../MetricCard';
+import { MetricCard } from '../../ui/MetricCard';
 
 export const PlansMetric = () => {
   return (
