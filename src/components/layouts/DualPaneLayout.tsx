@@ -1,10 +1,11 @@
-import { ReactNode, useCallback, useEffect, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import type { Layout, Layouts } from 'react-grid-layout';
 
 import { GRID_CONFIG } from '../../config/grid';
 import { CustomResizeHandle } from '../ui/CustomResizeHandle';
+import './DualPaneLayout.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -27,6 +28,7 @@ export interface DualPaneLayoutProps {
   // 响应式
   breakpoint?: number; // 切换为垂直布局的断点
   stackedOnTablet?: boolean; // 平板端是否堆叠
+  stackedOrder?: 'left-first' | 'right-first'; // 堆叠顺序
 
   // 样式
   className?: string;
@@ -43,10 +45,12 @@ export interface DualPaneLayoutProps {
   isMobile?: boolean;
   onResizeStart?: () => void;
   onResizeStop?: () => void;
+  onDragStart?: () => void;
+  onDragStop?: () => void;
 
-  // 高度（用于嵌套网格）
-  leftPaneHeight?: number;
-  rightPaneHeight?: number;
+  // 高度管理
+  height?: number; // 当前高度（行数）
+  defaultHeight?: number; // 默认高度（当 height 未定义时使用）
 }
 
 export const DualPaneLayout = ({
@@ -61,6 +65,7 @@ export const DualPaneLayout = ({
   onWidthChange,
   breakpoint = 1200,
   stackedOnTablet = true,
+  stackedOrder = 'left-first',
   className = '',
   leftPaneClassName = '',
   rightPaneClassName = '',
@@ -70,8 +75,10 @@ export const DualPaneLayout = ({
   isMobile = false,
   onResizeStart,
   onResizeStop,
-  leftPaneHeight = 1,
-  rightPaneHeight = 1,
+  onDragStart,
+  onDragStop,
+  height,
+  defaultHeight = 1,
 }: DualPaneLayoutProps) => {
   // 从 localStorage 加载宽度
   const getInitialWidth = () => {
@@ -93,6 +100,9 @@ export const DualPaneLayout = ({
   // 计算右面板宽度
   const rightWidth = totalColumns - leftWidth;
 
+  // 使用实际高度：优先使用 height，否则使用 defaultHeight
+  const actualHeight = height ?? defaultHeight;
+
   // 检测是否需要堆叠布局
   const [isStacked, setIsStacked] = useState(false);
 
@@ -107,71 +117,119 @@ export const DualPaneLayout = ({
   }, [breakpoint, stackedOnTablet]);
 
   // 主布局配置 - 包含左右两个面板
-  const mainLayouts: Layouts = {
-    lg: [
-      {
-        i: 'left-pane',
-        x: 0,
-        y: 0,
-        w: leftWidth,
-        h: leftPaneHeight,
-        static: !resizable || resizeHandlePosition !== 'left',
-        isDraggable: false,
-        isResizable: resizable && resizeHandlePosition === 'left',
-        resizeHandles: resizeHandlePosition === 'left' ? ['e'] : [],
-        minW: minLeftWidth,
-        maxW: maxLeftWidth,
-      },
-      {
-        i: 'right-pane',
-        x: leftWidth,
-        y: 0,
-        w: rightWidth,
-        h: rightPaneHeight,
-        isDraggable: false,
-        isResizable: resizable && resizeHandlePosition === 'right',
-        resizeHandles: resizeHandlePosition === 'right' ? ['w'] : [],
-        minW: totalColumns - maxLeftWidth,
-        maxW: totalColumns - minLeftWidth,
-      },
-    ],
-    md: [
-      {
-        i: 'left-pane',
-        x: 0,
-        y: 0,
-        w: leftWidth,
-        h: leftPaneHeight,
-        static: true,
-      },
-      {
-        i: 'right-pane',
-        x: leftWidth,
-        y: 0,
-        w: rightWidth,
-        h: rightPaneHeight,
-        static: true,
-      },
-    ],
-    sm: [
-      {
-        i: 'left-pane',
-        x: 0,
-        y: 0,
-        w: leftWidth,
-        h: leftPaneHeight,
-        static: true,
-      },
-      {
-        i: 'right-pane',
-        x: leftWidth,
-        y: 0,
-        w: rightWidth,
-        h: rightPaneHeight,
-        static: true,
-      },
-    ],
-  };
+  const mainLayouts: Layouts = useMemo(
+    () => ({
+      lg: [
+        {
+          i: 'left-pane',
+          x: 0,
+          y: 0,
+          w: leftWidth,
+          h: actualHeight,
+          static: !resizable || resizeHandlePosition !== 'left',
+          isDraggable: false,
+          isResizable: resizable && resizeHandlePosition === 'left',
+          resizeHandles: resizeHandlePosition === 'left' ? ['e'] : [],
+          minW: minLeftWidth,
+          maxW: maxLeftWidth,
+        },
+        {
+          i: 'right-pane',
+          x: leftWidth,
+          y: 0,
+          w: rightWidth,
+          h: actualHeight,
+          isDraggable: false,
+          isResizable: resizable && resizeHandlePosition === 'right',
+          resizeHandles: resizeHandlePosition === 'right' ? ['w'] : [],
+          minW: totalColumns - maxLeftWidth,
+          maxW: totalColumns - minLeftWidth,
+        },
+      ],
+      md: [
+        {
+          i: 'left-pane',
+          x: 0,
+          y: 0,
+          w: leftWidth,
+          h: actualHeight,
+          static: true,
+        },
+        {
+          i: 'right-pane',
+          x: leftWidth,
+          y: 0,
+          w: rightWidth,
+          h: actualHeight,
+          static: true,
+        },
+      ],
+      sm: [
+        {
+          i: 'left-pane',
+          x: 0,
+          y: 0,
+          w: leftWidth,
+          h: actualHeight,
+          static: true,
+        },
+        {
+          i: 'right-pane',
+          x: leftWidth,
+          y: 0,
+          w: rightWidth,
+          h: actualHeight,
+          static: true,
+        },
+      ],
+      xs: [
+        {
+          i: 'left-pane',
+          x: 0,
+          y: 0,
+          w: totalColumns,
+          h: actualHeight,
+          static: true,
+        },
+        {
+          i: 'right-pane',
+          x: 0,
+          y: actualHeight,
+          w: totalColumns,
+          h: actualHeight,
+          static: true,
+        },
+      ],
+      xxs: [
+        {
+          i: 'left-pane',
+          x: 0,
+          y: 0,
+          w: totalColumns,
+          h: actualHeight,
+          static: true,
+        },
+        {
+          i: 'right-pane',
+          x: 0,
+          y: actualHeight,
+          w: totalColumns,
+          h: actualHeight,
+          static: true,
+        },
+      ],
+    }),
+    [
+      leftWidth,
+      rightWidth,
+      actualHeight,
+      resizable,
+      resizeHandlePosition,
+      minLeftWidth,
+      maxLeftWidth,
+      totalColumns,
+    ]
+  );
 
   // 布局变化处理
   const handleLayoutChange = useCallback(
@@ -244,10 +302,22 @@ export const DualPaneLayout = ({
 
   // 垂直堆叠布局（平板和移动端）
   if (isStacked || isMobile) {
+    const leftPanel = <div className={leftPaneClassName}>{leftContent}</div>;
+    const rightPanel = <div className={rightPaneClassName}>{rightContent}</div>;
+
     return (
       <div className={`space-y-4 ${className}`}>
-        <div className={rightPaneClassName}>{rightContent}</div>
-        <div className={leftPaneClassName}>{leftContent}</div>
+        {stackedOrder === 'left-first' ? (
+          <>
+            {leftPanel}
+            {rightPanel}
+          </>
+        ) : (
+          <>
+            {rightPanel}
+            {leftPanel}
+          </>
+        )}
       </div>
     );
   }
@@ -264,19 +334,27 @@ export const DualPaneLayout = ({
           className="dual-pane-layout"
           layouts={mainLayouts}
           breakpoints={GRID_CONFIG.BREAKPOINTS}
-          cols={{ lg: totalColumns, md: totalColumns, sm: totalColumns }}
+          cols={{
+            lg: totalColumns,
+            md: totalColumns,
+            sm: totalColumns,
+            xs: totalColumns,
+            xxs: totalColumns,
+          }}
           rowHeight={GRID_CONFIG.ROW_HEIGHT}
           margin={GRID_CONFIG.MARGIN}
           containerPadding={GRID_CONFIG.CONTAINER_PADDING}
           onLayoutChange={handleLayoutChange}
           onResizeStart={handleResizeStart}
           onResizeStop={handleResizeStop}
+          onDragStart={onDragStart}
+          onDragStop={onDragStop}
           isDraggable={false}
           isResizable={!isMobile && resizable}
           compactType={null}
           allowOverlap={true}
           preventCollision={false}
-          autoSize={true}
+          autoSize={false}
           resizeHandle={<CustomResizeHandle handleAxis="x" />}
         >
           {/* 左面板 */}

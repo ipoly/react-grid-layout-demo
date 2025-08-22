@@ -5,7 +5,7 @@
 
 // Version UUID - Update this when making breaking changes to layout structure
 // This ensures old localStorage data doesn't interfere with new layouts
-export const STORAGE_VERSION = 'v1-2025-8-21-001';
+export const STORAGE_VERSION = 'v3-2025-8-22-gridlayout';
 
 // Storage keys with version
 export const STORAGE_KEYS = {

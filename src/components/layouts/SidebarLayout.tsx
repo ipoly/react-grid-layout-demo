@@ -1,11 +1,12 @@
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 
-import { Responsive, WidthProvider } from 'react-grid-layout';
-import type { Layout, Layouts } from 'react-grid-layout';
+import GridLayout, { WidthProvider } from 'react-grid-layout';
+import type { Layout } from 'react-grid-layout';
 
 import { GRID_CONFIG } from '../../config/grid';
+import './SidebarLayout.css';
 
-const ResponsiveGridLayout = WidthProvider(Responsive);
+const ResponsiveGridLayout = WidthProvider(GridLayout);
 
 export interface SidebarWidget {
   id: string;
@@ -43,7 +44,7 @@ export interface SidebarLayoutProps {
   // 回调
   onReorder?: (widgets: SidebarWidget[]) => void;
   onHeightChange?: (id: string, height: number) => void;
-  onLayoutChange?: (layouts: Layouts) => void;
+  onLayoutChange?: (layout: Layout[]) => void;
 
   // 样式
   className?: string;
@@ -57,9 +58,6 @@ export interface SidebarLayoutProps {
   onDragStop?: () => void;
   onResizeStart?: () => void;
   onResizeStop?: () => void;
-
-  // 响应式配置
-  breakpoints?: { [key: string]: number };
 }
 
 export const SidebarLayout = ({
@@ -67,7 +65,7 @@ export const SidebarLayout = ({
   width = 1,
   collapsible = false,
   defaultCollapsed = false,
-  reorderable = true,
+  reorderable = false,
   resizable = true,
   storageKey,
   onReorder,
@@ -81,18 +79,13 @@ export const SidebarLayout = ({
   onDragStop,
   onResizeStart,
   onResizeStop,
-  breakpoints = GRID_CONFIG.BREAKPOINTS,
 }: SidebarLayoutProps) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   // 生成默认布局
-  const generateDefaultLayouts = useCallback((): Layouts => {
+  const generateDefaultLayout = useCallback((): Layout[] => {
     let currentY = 0;
-    const layouts: Layouts = {
-      lg: [],
-      md: [],
-      sm: [],
-    };
+    const layout: Layout[] = [];
 
     widgets.forEach((widget) => {
       const height = widget.defaultHeight || 6;
@@ -109,34 +102,37 @@ export const SidebarLayout = ({
         resizeHandles: resizable ? ['s'] : [],
       };
 
-      layouts.lg?.push({ ...layoutItem });
-      layouts.md?.push({ ...layoutItem });
-      layouts.sm?.push({ ...layoutItem });
-
+      layout.push(layoutItem);
       currentY += height;
     });
 
-    return layouts;
+    return layout;
   }, [widgets, width, resizable]);
 
   // 从 localStorage 加载布局
-  const loadSavedLayouts = useCallback((): Layouts => {
-    if (!storageKey) return generateDefaultLayouts();
+  const loadSavedLayout = useCallback((): Layout[] => {
+    if (!storageKey) return generateDefaultLayout();
 
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.lg) return parsed;
+        // Handle both old format (with breakpoints) and new format (single array)
+        if (Array.isArray(parsed)) {
+          return parsed;
+        } else if (parsed.lg) {
+          // Migration from old format
+          return parsed.lg;
+        }
       }
     } catch (error) {
       console.warn(`Failed to load saved sidebar layouts:`, error);
     }
 
-    return generateDefaultLayouts();
-  }, [storageKey, generateDefaultLayouts]);
+    return generateDefaultLayout();
+  }, [storageKey, generateDefaultLayout]);
 
-  const [layouts, setLayouts] = useState<Layouts>(loadSavedLayouts);
+  const [layout, setLayout] = useState<Layout[]>(loadSavedLayout);
 
   // 计算侧边栏的总高度
   // const calculateTotalHeight = useCallback((currentLayouts: Layouts) => {
@@ -153,13 +149,13 @@ export const SidebarLayout = ({
 
   // 布局变化处理
   const handleLayoutChange = useCallback(
-    (layout: Layout[], newLayouts: Layouts) => {
-      setLayouts(newLayouts);
+    (newLayout: Layout[]) => {
+      setLayout(newLayout);
 
       // 保存到 localStorage
       if (storageKey) {
         try {
-          localStorage.setItem(storageKey, JSON.stringify(newLayouts));
+          localStorage.setItem(storageKey, JSON.stringify(newLayout));
         } catch (error) {
           console.error('Failed to save sidebar layouts:', error);
         }
@@ -167,7 +163,7 @@ export const SidebarLayout = ({
 
       // 处理重排序
       if (reorderable && onReorder) {
-        const sortedIds = layout
+        const sortedIds = newLayout
           .sort((a, b) => a.y - b.y)
           .map((item) => item.i);
         const reorderedWidgets = sortedIds
@@ -178,7 +174,7 @@ export const SidebarLayout = ({
 
       // 处理高度变化
       if (resizable && onHeightChange) {
-        layout.forEach((item) => {
+        newLayout.forEach((item) => {
           const widget = widgets.find((w) => w.id === item.i);
           if (widget && item.h !== widget.defaultHeight) {
             onHeightChange(item.i, item.h);
@@ -186,8 +182,8 @@ export const SidebarLayout = ({
         });
       }
 
-      // 调用外部回调
-      onLayoutChange?.(newLayouts);
+      // 调用外部回调，传递当前布局
+      onLayoutChange?.(newLayout);
     },
     [
       storageKey,
@@ -205,8 +201,8 @@ export const SidebarLayout = ({
     if (!storageKey) return;
 
     const resetLayout = () => {
-      const defaultLayouts = generateDefaultLayouts();
-      setLayouts(defaultLayouts);
+      const defaultLayout = generateDefaultLayout();
+      setLayout(defaultLayout);
       localStorage.removeItem(storageKey);
     };
 
@@ -226,7 +222,7 @@ export const SidebarLayout = ({
         delete windowWithReset.__resetSidebarLayout[storageKey];
       }
     };
-  }, [storageKey, generateDefaultLayouts]);
+  }, [storageKey, generateDefaultLayout]);
 
   // 折叠状态
   if (collapsible && isCollapsed) {
@@ -241,9 +237,6 @@ export const SidebarLayout = ({
       </div>
     );
   }
-
-  // 网格配置
-  const cols = { lg: width, md: width, sm: width };
 
   return (
     <div className={className}>
@@ -262,9 +255,8 @@ export const SidebarLayout = ({
       >
         <ResponsiveGridLayout
           className="sidebar-layout"
-          layouts={layouts}
-          breakpoints={breakpoints}
-          cols={cols}
+          layout={layout}
+          cols={width}
           rowHeight={GRID_CONFIG.ROW_HEIGHT}
           margin={GRID_CONFIG.MARGIN}
           containerPadding={GRID_CONFIG.CONTAINER_PADDING}

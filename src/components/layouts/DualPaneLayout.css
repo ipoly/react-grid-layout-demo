@@ -1,0 +1,29 @@
+/* DualPaneLayout specific styles */
+
+@layer components {
+  /* Main layout containers - transparent and no visual styles */
+  .dual-pane-layout > .react-grid-item {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .dual-pane-layout > .react-grid-item:hover {
+    transform: none;
+    box-shadow: none;
+    border: none;
+  }
+}
+
+@layer overrides {
+  /* Ensure dual-pane items don't get unintended animations */
+  .dual-pane-layout > .react-grid-item.react-draggable-dragging {
+    transition: none;
+  }
+
+  .dual-pane-layout > .react-grid-item.resizing {
+    box-shadow: none;
+    border: none;
+    transform: none;
+  }
+}
