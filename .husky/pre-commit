@@ -1,1 +1,26 @@
+#!/bin/sh
+
+# Run lint-staged for format and lint checks
 pnpm exec lint-staged
+
+# If lint-staged fails, try to auto-fix and show what needs to be fixed
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "⚠️  Pre-commit checks failed. Attempting auto-fix..."
+  echo ""
+  
+  # Auto-fix ESLint issues
+  pnpm run lint:fix
+  
+  # Auto-format with Prettier
+  pnpm run format
+  
+  # Auto-fix Stylelint issues
+  pnpm run style:fix
+  
+  echo ""
+  echo "✅ Auto-fix completed. Please review the changes and commit again."
+  echo ""
+  
+  exit 1
+fi
