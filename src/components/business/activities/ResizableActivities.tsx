@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ResizableBox } from 'react-resizable';
 
-import { STORAGE_KEYS } from '../config/storage';
+import { STORAGE_KEYS } from '../../../config/storage';
 import { Activities } from './Activities';
 
 interface ResizableActivitiesProps {
