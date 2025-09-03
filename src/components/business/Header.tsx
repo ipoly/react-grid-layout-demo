@@ -20,6 +20,8 @@ interface HeaderProps {
   activeMainNav?: string;
   activeSubNav?: string;
   onNavChange?: (mainNav: string, subNav?: string) => void;
+  containerClassName?: string;
+  containerStyle?: React.CSSProperties;
 }
 
 export const Header = ({
@@ -30,7 +32,15 @@ export const Header = ({
   activeMainNav = 'Planning',
   activeSubNav = 'Clients',
   onNavChange,
+  containerClassName = 'max-w-7xl mx-auto',
+  containerStyle = {},
 }: HeaderProps) => {
+  /**
+   * Navigation container classes:
+   * Uses Tailwind v4 utility-first approach - no complex JavaScript manipulation.
+   * Navigation bars manage their own vertical spacing through fixed heights.
+   */
+  const navContainerClassName = containerClassName;
   // Navigation structure based on Advisor Portal Navigation Tree
   const navigationItems: NavItem[] = [
     { name: 'Dashboard' },
@@ -99,8 +109,8 @@ export const Header = ({
   return (
     <div className="bg-white">
       {/* Main Navigation */}
-      <div className="px-12 py-0">
-        <div className="flex h-[72px] items-center justify-between">
+      <div className={navContainerClassName} style={containerStyle}>
+        <div className="flex h-[72px] items-center justify-between px-6 py-0">
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center gap-6">
             {/* Logo */}
@@ -192,27 +202,29 @@ export const Header = ({
 
       {/* Sub Navigation */}
       {hasSubNav && (
-        <div className="bg-[#f2f0ee] px-12 py-0">
-          <div className="flex h-11 items-center gap-8">
-            <nav className="flex items-center gap-2">
-              {activeNavItem?.subItems?.map((subItem) => (
-                <div key={subItem.name} className="relative">
-                  <button
-                    onClick={() => onNavChange?.(activeMainNav, subItem.name)}
-                    className={`px-3 py-1 rounded-md text-base font-semibold transition-colors ${
-                      subItem.active
-                        ? 'text-[#4a433c]'
-                        : 'text-[#635a52] hover:text-[#4a433c]'
-                    }`}
-                  >
-                    {subItem.name}
-                  </button>
-                  {subItem.active && (
-                    <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#d1ccc6] rounded-full" />
-                  )}
-                </div>
-              ))}
-            </nav>
+        <div className="bg-[#f2f0ee]">
+          <div className={navContainerClassName} style={containerStyle}>
+            <div className="flex h-11 items-center gap-8 px-12 py-0">
+              <nav className="flex items-center gap-2">
+                {activeNavItem?.subItems?.map((subItem) => (
+                  <div key={subItem.name} className="relative">
+                    <button
+                      onClick={() => onNavChange?.(activeMainNav, subItem.name)}
+                      className={`px-3 py-1 rounded-md text-base font-semibold transition-colors ${
+                        subItem.active
+                          ? 'text-[#4a433c]'
+                          : 'text-[#635a52] hover:text-[#4a433c]'
+                      }`}
+                    >
+                      {subItem.name}
+                    </button>
+                    {subItem.active && (
+                      <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#d1ccc6] rounded-full" />
+                    )}
+                  </div>
+                ))}
+              </nav>
+            </div>
           </div>
         </div>
       )}
