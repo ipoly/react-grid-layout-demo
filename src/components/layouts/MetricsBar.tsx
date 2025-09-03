@@ -50,7 +50,6 @@ export interface MetricsBarProps {
   // 外部传入的状态
   isDragging?: boolean;
   isResizing?: boolean;
-  isMobile?: boolean;
   onDragStart?: () => void;
   onDragStop?: () => void;
   onResizeStart?: () => void;
@@ -75,7 +74,6 @@ export const MetricsBar = ({
   compact = false,
   // isDragging = false,
   // isResizing = false,
-  isMobile = false,
   onDragStart,
   onDragStop,
   onResizeStart,
@@ -139,21 +137,7 @@ export const MetricsBar = ({
     };
   }, [columns.tablet, tabletBehavior]);
 
-  // 如果是移动端且配置为堆叠
-  if (isMobile && tabletBehavior === 'stack') {
-    return (
-      <div className={`space-y-4 ${className}`}>
-        {metrics
-          .filter((m) => !m.hideOnTablet)
-          .sort((a, b) => (b.priority || 0) - (a.priority || 0))
-          .map((metric) => (
-            <div key={metric.id} className={metric.className}>
-              {metric.component}
-            </div>
-          ))}
-      </div>
-    );
-  }
+  // Always use GridLayout for fixed-width layout
 
   // 使用 GridLayout 渲染
   return (
@@ -169,7 +153,6 @@ export const MetricsBar = ({
         autoSave={autoSave}
         className={compact ? 'compact-metrics' : ''}
         maxRows={1}
-        isMobile={isMobile}
         onDragStart={onDragStart}
         onDragStop={onDragStop}
         onResizeStart={onResizeStart}

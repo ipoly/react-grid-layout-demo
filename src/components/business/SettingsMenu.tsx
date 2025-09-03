@@ -111,26 +111,15 @@ export const SettingsMenu = ({
                   <div className="flex flex-wrap gap-2">
                     <div className="flex items-center gap-1">
                       <Badge type="pill-color" color="gray" size="sm">
-                        LG: {preset.breakpoints.lg}px
+                        Fixed Width
                       </Badge>
                       <Badge type="pill-color" color="gray" size="sm">
-                        {preset.cols.lg}col
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Badge type="pill-color" color="gray" size="sm">
-                        MD: {preset.breakpoints.md}px
-                      </Badge>
-                      <Badge type="pill-color" color="gray" size="sm">
-                        {preset.cols.md}col
+                        {preset.cols} cols
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Badge type="pill-color" color="gray" size="sm">
-                        SM: {preset.breakpoints.sm}px
-                      </Badge>
-                      <Badge type="pill-color" color="gray" size="sm">
-                        {preset.cols.sm}col
+                      <Badge type="pill-color" color="blue" size="sm">
+                        1280-1680px
                       </Badge>
                     </div>
                   </div>
