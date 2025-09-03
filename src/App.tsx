@@ -16,6 +16,10 @@ function App() {
   // 断点预设状态
   const [currentPreset, setCurrentPreset] = useState('experimental');
 
+  // 导航状态
+  const [activeMainNav, setActiveMainNav] = useState('Planning');
+  const [activeSubNav, setActiveSubNav] = useState('Clients');
+
   // 动态获取当前断点配置
   const currentBreakpointConfig = useMemo(
     () => getBreakpointPreset(currentPreset),
@@ -25,7 +29,32 @@ function App() {
   // 状态管理
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+
+  // 处理导航变更
+  const handleNavChange = useCallback((mainNav: string, subNav?: string) => {
+    const navSubDefaults: { [key: string]: string } = {
+      ChubbyIntel: 'Dashboard',
+      ChubbyFlows: 'Tasks',
+      ChubbyPay: 'Plans',
+      Risk: 'Summary',
+      Models: 'Portfolios',
+      Planning: 'Clients',
+    };
+
+    setActiveMainNav(mainNav);
+    // 如果有子导航参数，设置子导航；否则清除子导航
+    if (subNav !== undefined) {
+      setActiveSubNav(subNav);
+    } else {
+      // 当切换主导航时，设置默认的子导航
+      setActiveSubNav(navSubDefaults[mainNav] || '');
+    }
+
+    console.log('Navigation changed:', {
+      mainNav,
+      subNav: subNav || navSubDefaults[mainNav],
+    });
+  }, []);
 
   // 处理断点预设切换
   const handleBreakpointPresetChange = useCallback((presetId: string) => {
@@ -61,17 +90,6 @@ function App() {
     }
   }, []);
 
-  // 检测移动设备
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   // 重置布局
   const resetLayout = useCallback(() => {
     // 清除本地存储
@@ -101,10 +119,10 @@ function App() {
   const handleResizeStart = useCallback(() => setIsResizing(true), []);
   const handleResizeStop = useCallback(() => setIsResizing(false), []);
 
-  // 动态断点配置 - 根据选择的预设
+  // 固定断点配置 - 针对固定宽度设计
   const breakpoints = useMemo(
-    () => currentBreakpointConfig.breakpoints,
-    [currentBreakpointConfig]
+    () => ({ lg: 1200 }), // 单一断点，适用于固定宽度
+    []
   );
 
   // 动态容器样式
@@ -124,7 +142,7 @@ function App() {
   // 动态容器类名
   const containerClassName = useMemo(() => {
     const config = currentBreakpointConfig.containerConfig;
-    const baseClasses = 'mx-auto px-4 sm:px-6 py-4 sm:py-8';
+    const baseClasses = 'mx-auto px-6 py-8';
 
     if (!config || !config.adaptive) {
       return `max-w-7xl ${baseClasses}`;
@@ -170,6 +188,9 @@ function App() {
         <Header
           currentBreakpointPreset={currentPreset}
           onBreakpointPresetChange={handleBreakpointPresetChange}
+          activeMainNav={activeMainNav}
+          activeSubNav={activeSubNav}
+          onNavChange={handleNavChange}
         />
       </div>
 
@@ -178,7 +199,6 @@ function App() {
           onResetLayout={resetLayout}
           isDragging={isDragging}
           isResizing={isResizing}
-          isMobile={isMobile}
         />
 
         {/* 顶部指标栏 */}
@@ -192,11 +212,10 @@ function App() {
               tabletBehavior="grid"
               breakpoints={breakpoints}
               reorderable={true}
-              draggable={!isMobile}
+              draggable={true}
               resizable={false}
               storageKey={STORAGE_KEYS.TOP_LAYOUTS}
               autoSave={true}
-              isMobile={isMobile}
               onDragStart={handleDragStart}
               onDragStop={handleDragStop}
               onResizeStart={handleResizeStart}
@@ -210,7 +229,6 @@ function App() {
         <WorkspaceLayout
           isDragging={isDragging}
           isResizing={isResizing}
-          isMobile={isMobile}
           onDragStart={handleDragStart}
           onDragStop={handleDragStop}
           onResizeStart={handleResizeStart}

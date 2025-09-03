@@ -15,7 +15,6 @@ import type { SidebarWidget } from './layouts/SidebarLayout';
 interface WorkspaceLayoutProps {
   isDragging: boolean;
   isResizing: boolean;
-  isMobile: boolean;
   onDragStart: () => void;
   onDragStop: () => void;
   onResizeStart: () => void;
@@ -25,7 +24,6 @@ interface WorkspaceLayoutProps {
 export const WorkspaceLayout = ({
   isDragging,
   isResizing,
-  isMobile,
   onDragStart,
   onDragStop,
   onResizeStart,
@@ -163,31 +161,7 @@ export const WorkspaceLayout = ({
     };
   }, []);
 
-  // 移动端使用简单的垂直布局
-  if (isMobile) {
-    return (
-      <div className="w-full space-y-4">
-        {/* 先显示 Activities */}
-        <div className="bg-transparent">
-          <Activities />
-        </div>
-        {/* 然后显示侧边栏小部件（折叠状态） */}
-        <SidebarLayout
-          widgets={sidebarWidgets}
-          width={1}
-          storageKey={STORAGE_KEYS.SIDE_LAYOUTS}
-          collapsible
-          defaultCollapsed
-          reorderable={false}
-          resizable={false}
-          isMobile={true}
-          className="w-full"
-        />
-      </div>
-    );
-  }
-
-  // 桌面端使用双面板布局
+  // 使用双面板布局
   return (
     <DualPaneLayout
       // 布局配置
@@ -202,7 +176,7 @@ export const WorkspaceLayout = ({
           width={1}
           storageKey={STORAGE_KEYS.SIDE_LAYOUTS}
           reorderable={true}
-          resizable={!isMobile}
+          resizable={true}
           onLayoutChange={handleSidebarLayoutChange}
           onDragStart={onDragStart}
           onDragStop={onDragStop}
@@ -210,12 +184,11 @@ export const WorkspaceLayout = ({
           onResizeStop={onResizeStop}
           isDragging={isDragging}
           isResizing={isResizing}
-          isMobile={isMobile}
         />
       }
       rightContent={<Activities />}
       // 交互控制
-      resizable={!isMobile}
+      resizable={true}
       resizeHandlePosition="right"
       onWidthChange={handleWidthChange}
       // 响应式
@@ -227,7 +200,6 @@ export const WorkspaceLayout = ({
       // 状态
       isDragging={isDragging}
       isResizing={isResizing}
-      isMobile={isMobile}
       onResizeStart={onResizeStart}
       onResizeStop={onResizeStop}
       onDragStart={onDragStart}
