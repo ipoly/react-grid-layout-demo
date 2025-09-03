@@ -19,6 +19,10 @@ function App() {
   const [activeMainNav, setActiveMainNav] = useState('Planning');
   const [activeSubNav, setActiveSubNav] = useState('Clients');
 
+  // 右侧图标状态
+  const [activeRightIcon, setActiveRightIcon] = useState('');
+  const [activeRightSubNav, setActiveRightSubNav] = useState('');
+
   // 状态管理
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -35,6 +39,10 @@ function App() {
     };
 
     setActiveMainNav(mainNav);
+    // 清除右侧图标的激活状态，确保互斥
+    setActiveRightIcon('');
+    setActiveRightSubNav('');
+
     // 如果有子导航参数，设置子导航；否则清除子导航
     if (subNav !== undefined) {
       setActiveSubNav(subNav);
@@ -48,6 +56,42 @@ function App() {
       subNav: subNav || navSubDefaults[mainNav],
     });
   }, []);
+
+  // 处理右侧图标变更
+  const handleRightIconChange = useCallback(
+    (iconId: string, subNav?: string) => {
+      // 从 Header.tsx 中获取右侧图标的配置
+      const getFirstSubItem = (id: string) => {
+        const iconConfigs = {
+          more: ['Models'], // More 下的第一项是 Models (navigationItems.slice(6))
+          sso: ['Goldman Sachs'], // SSO 下的第一项
+          vault: [], // Vault 没有子项
+          notifications: ['Notifications'], // Notifications 下的第一项
+          settings: ['Account'], // Settings 下的第一项
+        };
+        return iconConfigs[id as keyof typeof iconConfigs]?.[0] || '';
+      };
+
+      setActiveRightIcon(iconId);
+      // 清除主导航的激活状态，确保互斥
+      setActiveMainNav('');
+      setActiveSubNav('');
+
+      // 如果有子导航参数，设置子导航；否则设置第一个子项
+      if (subNav !== undefined) {
+        setActiveRightSubNav(subNav);
+      } else {
+        // 当切换右侧图标时，自动选择第一个子项
+        setActiveRightSubNav(getFirstSubItem(iconId));
+      }
+
+      console.log('Right icon changed:', {
+        iconId,
+        subNav: subNav || getFirstSubItem(iconId),
+      });
+    },
+    []
+  );
 
   // 处理断点预设切换
   const handleBreakpointPresetChange = useCallback((presetId: string) => {
@@ -158,6 +202,9 @@ function App() {
           activeMainNav={activeMainNav}
           activeSubNav={activeSubNav}
           onNavChange={handleNavChange}
+          activeRightIcon={activeRightIcon}
+          activeRightSubNav={activeRightSubNav}
+          onRightIconChange={handleRightIconChange}
           containerClassName="max-w-7xl mx-auto"
         />
       </div>
