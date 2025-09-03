@@ -1,6 +1,6 @@
 # React Grid Layout Demo
 
-> 基于 React Grid Layout + Untitled UI 的响应式网格布局仪表板演示
+> 基于 React Grid Layout + Untitled UI 的固定宽度网格布局仪表板演示
 
 [![Deploy to GitHub Pages](https://github.com/ipoly/react-grid-layout-demo/actions/workflows/deploy.yml/badge.svg)](https://github.com/ipoly/react-grid-layout-demo/actions/workflows/deploy.yml)
 [![在线演示](https://img.shields.io/badge/在线-演示-blue)](https://ipoly.github.io/react-grid-layout-demo/)
@@ -8,9 +8,9 @@
 ## ✨ 功能特点
 
 - 🎯 **拖拽式网格布局** - 支持拖拽调整位置和大小
-- 📱 **完全响应式** - 适配桌面、平板、移动设备
+- 🖥️ **固定宽度设计** - 针对 1280-1680px 宽度优化
 - 💾 **布局持久化** - 自动保存用户布局配置
-- ⚡ **2种断点预设** - 默认响应式和固定布局方案
+- ⚡ **单一布局方案** - 专注桌面端固定布局体验
 - ♿ **完全可访问** - 基于 React Aria 无障碍标准
 - 🎨 **现代 UI** - Untitled UI + Tailwind CSS v4
 
@@ -46,13 +46,13 @@ pnpm build
 - **指标卡片** - 客户、任务、资产、计划数据展示
 - **数据列表** - 任务、事件、计划列表管理
 - **活动面板** - 用户操作历史记录
-- **设置面板** - 2种响应式断点预设
+- **固定布局** - 针对桌面端优化的布局体验
 
 ### 📐 布局操作
 
 - **拖拽调整** - 鼠标拖拽改变组件位置
 - **尺寸调整** - 拖拽右下角改变组件大小
-- **响应式适配** - 自动适配不同屏幕尺寸
+- **固定宽度** - 专为 1280-1680px 宽度优化
 - **配置持久化** - 布局设置自动保存
 
 ## 📖 项目文档
@@ -75,8 +75,8 @@ pnpm build
 ### 体验功能
 
 - 拖拽调整组件位置和大小
-- 切换不同响应式断点预设
-- 查看移动端适配效果
+- 固定宽度布局优化体验
+- 桌面端专属交互设计
 
 ---
 
