@@ -9,7 +9,6 @@ import { PlansMetric } from './components/business/metrics/PlansMetric';
 import { TasksMetric } from './components/business/metrics/TasksMetric';
 import { MetricsBar } from './components/layouts/MetricsBar';
 import type { MetricConfig } from './components/layouts/MetricsBar';
-import { getBreakpointPreset } from './config/breakpointPresets';
 import { STORAGE_KEYS, cleanupOldVersions } from './config/storage';
 
 function App() {
@@ -19,12 +18,6 @@ function App() {
   // 导航状态
   const [activeMainNav, setActiveMainNav] = useState('Planning');
   const [activeSubNav, setActiveSubNav] = useState('Clients');
-
-  // 动态获取当前断点配置
-  const currentBreakpointConfig = useMemo(
-    () => getBreakpointPreset(currentPreset),
-    [currentPreset]
-  );
 
   // 状态管理
   const [isDragging, setIsDragging] = useState(false);
@@ -125,32 +118,6 @@ function App() {
     []
   );
 
-  // 动态容器样式
-  const containerStyle = useMemo(() => {
-    const config = currentBreakpointConfig.containerConfig;
-    if (!config || !config.adaptive) {
-      return {}; // 使用默认的 max-w-7xl
-    }
-
-    return {
-      minWidth: config.minWidth ? `${config.minWidth}px` : undefined,
-      maxWidth: config.maxWidth ? `${config.maxWidth}px` : undefined,
-      width: config.adaptive ? '100%' : undefined,
-    };
-  }, [currentBreakpointConfig]);
-
-  // 动态容器类名
-  const containerClassName = useMemo(() => {
-    const config = currentBreakpointConfig.containerConfig;
-    const baseClasses = 'mx-auto px-6 py-8';
-
-    if (!config || !config.adaptive) {
-      return `max-w-7xl ${baseClasses}`;
-    }
-
-    return baseClasses;
-  }, [currentBreakpointConfig]);
-
   // 指标配置
   const metricsConfig: MetricConfig[] = useMemo(
     () => [
@@ -183,7 +150,7 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       <div className="sticky top-0 z-50">
         <Header
           currentBreakpointPreset={currentPreset}
@@ -191,10 +158,11 @@ function App() {
           activeMainNav={activeMainNav}
           activeSubNav={activeSubNav}
           onNavChange={handleNavChange}
+          containerClassName="max-w-7xl mx-auto"
         />
       </div>
 
-      <main className={containerClassName} style={containerStyle}>
+      <main className="max-w-7xl mx-auto px-6 py-8">
         <WelcomeSection
           onResetLayout={resetLayout}
           isDragging={isDragging}
