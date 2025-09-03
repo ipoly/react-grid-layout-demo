@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-基于 React Grid Layout + Untitled UI 的响应式网格布局演示项目，展示拖拽、调整大小等交互功能。
+基于 React Grid Layout + Untitled UI 的固定宽度网格布局演示项目，专为 1280-1680px 桌面端优化，展示拖拽、调整大小等交互功能。
 
 ## 技术栈
 
@@ -61,12 +61,21 @@ const handleLayoutChange = useCallback((layout: Layout[], layouts: Layouts) => {
 }, []);
 ```
 
-### 响应式配置
+### 固定宽度配置
 
 ```tsx
-// 推荐的断点配置
-breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+// 固定宽度布局配置（1280-1680px）
+export interface BreakpointConfig {
+  id: string;
+  name: string;
+  description: string;
+  cols: number; // 固定 12 列
+  containerConfig: {
+    minWidth: 1280;
+    maxWidth: 1680;
+    adaptive: true;
+  };
+}
 ```
 
 ### 布局持久化
@@ -359,7 +368,7 @@ export default defineConfig({
 - **CSS 样式不生效**: 确保导入了 `react-grid-layout/css/styles.css`
 - **拖拽不响应**: 检查 `isDraggable` 和 `isResizable` 属性
 - **布局重叠**: 调整 `margin` 和 `containerPadding` 设置
-- **响应式问题**: 检查断点配置和列数设置
+- **固定宽度问题**: 检查容器宽度配置和列数设置
 
 ### 调试技巧
 
@@ -556,24 +565,24 @@ interface Layout {
 }
 ```
 
-### ResponsiveGridLayout 组件
+### 固定宽度布局组件
 
 ```tsx
-interface ResponsiveGridLayoutProps
-  extends Omit<GridLayoutProps, 'layout' | 'cols' | 'width'> {
-  // 响应式配置
-  breakpoints: { [breakpoint: string]: number }; // 断点配置
-  cols: { [breakpoint: string]: number }; // 各断点列数
-  layouts: { [breakpoint: string]: Layout[] }; // 各断点布局
+// 针对固定宽度设计，使用标准 GridLayout
+interface FixedGridLayoutProps extends GridLayoutProps {
+  // 固定配置
+  cols: 12; // 始终使用 12 列网格
+  width: number; // 固定宽度 (1280-1680px 范围内)
 
-  // 响应式回调
-  onBreakpointChange: (newBreakpoint: string, newCols: number) => void;
-  onWidthChange: (
-    containerWidth: number,
-    margin: [number, number],
-    cols: number,
-    containerPadding: [number, number]
-  ) => void;
+  // 布局配置
+  layout: Layout[]; // 单一布局配置
+
+  // 容器配置
+  containerConfig?: {
+    minWidth: 1280;
+    maxWidth: 1680;
+    adaptive: true;
+  };
 }
 ```
 
@@ -611,43 +620,31 @@ function BasicGrid() {
 }
 ```
 
-#### 响应式网格
+#### 固定宽度网格
 
 ```tsx
-import { Responsive as ResponsiveGridLayout } from 'react-grid-layout';
+import GridLayout from 'react-grid-layout';
 
-function ResponsiveGrid() {
-  const layouts = {
-    lg: [
-      { i: 'a', x: 0, y: 0, w: 4, h: 2 },
-      { i: 'b', x: 4, y: 0, w: 4, h: 2 },
-      { i: 'c', x: 8, y: 0, w: 4, h: 2 },
-    ],
-    md: [
-      { i: 'a', x: 0, y: 0, w: 3, h: 2 },
-      { i: 'b', x: 3, y: 0, w: 3, h: 2 },
-      { i: 'c', x: 6, y: 0, w: 4, h: 2 },
-    ],
-    sm: [
-      { i: 'a', x: 0, y: 0, w: 6, h: 2 },
-      { i: 'b', x: 0, y: 2, w: 6, h: 2 },
-      { i: 'c', x: 0, y: 4, w: 6, h: 2 },
-    ],
-  };
+function FixedWidthGrid() {
+  const layout = [
+    { i: 'a', x: 0, y: 0, w: 4, h: 2 },
+    { i: 'b', x: 4, y: 0, w: 4, h: 2 },
+    { i: 'c', x: 8, y: 0, w: 4, h: 2 },
+  ];
 
   return (
-    <ResponsiveGridLayout
+    <GridLayout
       className="layout"
-      layouts={layouts}
-      breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-      cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+      layout={layout}
+      cols={12} // 固定 12 列
       rowHeight={60}
-      onLayoutChange={(layout, layouts) => setLayouts(layouts)}
+      width={1400} // 固定宽度，适用于 1280-1680px 范围
+      onLayoutChange={(layout) => setLayout(layout)}
     >
       <div key="a">a</div>
       <div key="b">b</div>
       <div key="c">c</div>
-    </ResponsiveGridLayout>
+    </GridLayout>
   );
 }
 ```
