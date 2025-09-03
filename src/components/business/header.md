@@ -3,51 +3,58 @@
 ## Advisor Portal Navigation Tree
 
 ```zsh
- ├── Clients
- ├── RightIntel
- │   ├── Dashboard
- │   ├── Client Overview
- │   └── Opportunities
- ├── RightFlows (如果有权限)
- │   ├── Tasks
- │   └── Workflows
- └── Tasks (如果没有 RightFlows 权限，则单独显示)
- ├── RightPay (基于权限显示)
- │   ├── Plans (基于权限)
- │   ├── Subscriptions (基于权限)
- │   ├── Invoices (基于权限)
- │   ├── Transactions (基于权限)
- │   └── Accounts (基于权限)
- ├── Risk (基于权限显示)
- │   ├── Summary
- │   ├── Questionnaires
- │   └── Categories (基于权限)
- ├── Models
- │   ├── Portfolios
- │   ├── Glide
- │   ├── Scenarios
- │   ├── Vesting
- │   ├── Retirement Spending
- │   └── Annuities
- ├── Admin (基于权限显示，外部链接)
- ├── Templates
- ├── Client Settings
- ├── Assumptions
- ├── Integrations
- ├── Help (外部链接)
- ├── More (包含超过6个基础菜单项后的额外项目)
- │   └── [超出的基础菜单项]
- ├── SSO to Partner (基于权限和配置)
- │   └── [动态SSO提供商列表]
- ├── Vault (基于权限，带图标)
- ├── Notifications (基于权限，带图标)
- │   ├── Notifications
- │   └── Notification Settings
- └── Settings (基于权限，带图标)
-     ├── Account
-     ├── Security
-     ├── Teams (基于权限)
-     ├── Billing
-     ├── Updates (外部链接)
-     └── Sign Out
+# Primary Navigation (前6个直接显示)
+├── Dashboard
+├── Clients
+├── ChubbyIntel
+│   ├── Dashboard
+│   ├── Client Overview
+│   └── Opportunities
+├── ChubbyFlows (如果有权限)
+│   ├── Tasks
+│   └── Workflows
+├── ChubbyPay (基于权限显示)
+│   ├── Plans (基于权限)
+│   ├── Subscriptions (基于权限)
+│   ├── Invoices (基于权限)
+│   ├── Transactions (基于权限)
+│   └── Accounts (基于权限)
+└── Risk (基于权限显示)
+    ├── Summary
+    ├── Questionnaires
+    └── Categories (基于权限)
+
+# Right Side Icons (右侧图标区域，独立显示)
+├── More (MoreHorizontal图标)
+│   ├── Models
+│   │   ├── Portfolios
+│   │   ├── Glide
+│   │   ├── Scenarios
+│   │   ├── Vesting
+│   │   ├── Retirement Spending
+│   │   └── Annuities
+│   ├── Admin (基于权限显示，外部链接)
+│   ├── Templates
+│   ├── Client Settings
+│   ├── Assumptions
+│   ├── Integrations
+│   └── Help (外部链接)
+├── SSO to Partner (Key图标，基于权限和配置)
+│   ├── Goldman Sachs
+│   ├── Morgan Stanley
+│   ├── Charles Schwab
+│   ├── Fidelity
+│   ├── TD Ameritrade
+│   └── E*TRADE
+├── Vault (Folder图标，基于权限) - 独立功能，无子菜单
+├── Notifications (Bell图标，基于权限)
+│   ├── Notifications
+│   └── Notification Settings
+└── Settings (Settings图标，基于权限)
+    ├── Account
+    ├── Security
+    ├── Teams (基于权限)
+    ├── Billing
+    ├── Updates (外部链接)
+    └── Sign Out
 ```
