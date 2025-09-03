@@ -1,0 +1,18 @@
+/* Project-specific theme overrides */
+@theme {
+  /* Custom spacing for grid layout if needed */
+  --spacing: 4px;
+
+  /* Brand color customization - #4966D0 */
+  --color-brand-50: rgb(246 248 255);
+  --color-brand-100: rgb(237 241 255);
+  --color-brand-200: rgb(218 225 254);
+  --color-brand-300: rgb(191 203 253);
+  --color-brand-400: rgb(155 172 250);
+  --color-brand-500: rgb(73 102 208);
+  --color-brand-600: rgb(58 82 167);
+  --color-brand-700: rgb(48 68 138);
+  --color-brand-800: rgb(39 55 110);
+  --color-brand-900: rgb(33 47 88);
+  --color-brand-950: rgb(20 28 52);
+}

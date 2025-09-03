@@ -1,6 +1,6 @@
-@import 'tailwindcss';
-@import './theme.css';
-@import './typography.css';
+@import url('../../untitled-ui/styles/theme.css');
+@import url('../../untitled-ui/styles/typography.css');
+@import url('./theme-overrides.css');
 
 @plugin "@tailwindcss/typography";
 @plugin "tailwindcss-react-aria-components";
@@ -14,7 +14,7 @@
   /* For Webkit-based browsers (Chrome, Safari and Opera) */
   &::-webkit-scrollbar {
     display: none;
-    -webkit-appearance: none;
+    appearance: none;
   }
 
   /* For IE, Edge and Firefox */
@@ -33,9 +33,7 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-font-variant-ligatures: contextual;
   font-variant-ligatures: contextual;
-  -webkit-font-kerning: normal;
   font-kerning: normal;
 }
 
@@ -48,15 +46,16 @@ details summary::-webkit-details-marker {
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
+
 /* Firefox */
 input[type='number'] {
-  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* Hide the default clear button (X) from search inputs. */
 input[type='search']::-webkit-search-cancel-button {
-  -webkit-appearance: none;
+  appearance: none;
 }

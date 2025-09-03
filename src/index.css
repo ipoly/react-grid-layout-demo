@@ -1,72 +1,21 @@
 @import url('tailwindcss');
 @import url('react-resizable/css/styles.css');
 @import url('react-grid-layout/css/styles.css');
+@import url('./styles/globals.css');
 @import url('./styles/resizable.css');
 @import url('./styles/grid-items.css');
 
 /* Use CSS Layers, but define overrides directly here, not import within layer */
 @layer base, components, overrides;
 
-@theme {
-  /* Base colors */
-  --color-background: oklch(99% 0 0deg);
-  --color-foreground: oklch(15% 0.015 240deg);
-
-  /* Card colors */
-  --color-card: oklch(100% 0 0deg);
-  --color-card-foreground: oklch(15% 0.015 240deg);
-
-  /* Primary colors - dark blue for main buttons */
-  --color-primary: oklch(25% 0.05 270deg);
-  --color-primary-foreground: oklch(98% 0.005 270deg);
-
-  /* Brand colors - consistent with primary */
-  --color-brand: oklch(25% 0.05 270deg);
-  --color-brand-foreground: oklch(98% 0.005 270deg);
-
-  /* Form input background - white */
-  --color-form-bg: oklch(100% 0 0deg);
-  --color-form-border: oklch(85% 0.005 240deg);
-
-  /* Secondary colors */
-  --color-secondary: oklch(95% 0.01 240deg);
-  --color-secondary-foreground: oklch(15% 0.015 240deg);
-
-  /* Muted colors */
-  --color-muted: oklch(95% 0.01 240deg);
-  --color-muted-foreground: oklch(50% 0.01 240deg);
-
-  /* Accent colors */
-  --color-accent: oklch(95% 0.01 240deg);
-  --color-accent-foreground: oklch(15% 0.015 240deg);
-
-  /* Destructive colors */
-  --color-destructive: oklch(60% 0.15 20deg);
-  --color-destructive-foreground: oklch(98% 0.005 20deg);
-
-  /* Border and input - more visible borders */
-  --color-border: oklch(85% 0.005 240deg);
-  --color-input: oklch(85% 0.005 240deg);
-  --color-ring: oklch(55% 0.08 250deg);
-
-  /* Border radius */
-  --radius: 0.5rem;
-
-  /* Grid system variables */
-  --grid-row-height: 68px;
-  --grid-gap: 16px;
-  --grid-margin-x: 16px;
-  --grid-margin-y: 16px;
-}
-
 @layer base {
   * {
-    border-color: theme(--color-border);
+    border-color: var(--color-border-primary);
   }
 
   body {
-    background-color: theme(--color-background);
-    color: theme(--color-foreground);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
