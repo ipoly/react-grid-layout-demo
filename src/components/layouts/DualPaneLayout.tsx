@@ -359,7 +359,7 @@ export const DualPaneLayout = ({
           compactType={null}
           allowOverlap={true}
           preventCollision={false}
-          autoSize={false}
+          autoSize={true}
           resizeHandle={<CustomResizeHandle handleAxis="w" />}
         >
           {/* 左面板 */}
