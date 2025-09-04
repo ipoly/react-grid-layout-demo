@@ -234,6 +234,9 @@ export const Header = ({
                 <button
                   key={item.name}
                   onClick={() => onNavChange?.(item.name)}
+                  style={{
+                    anchorName: `--nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`,
+                  }}
                   className={`px-3 py-2 rounded-md text-base font-semibold transition-all ${
                     item.active
                       ? 'bg-[#f2f0ee] text-[#4a433c] shadow-sm ring-1 ring-[#e6e2dc]'
@@ -273,6 +276,7 @@ export const Header = ({
                   <div key={iconItem.id} className="relative">
                     <button
                       onClick={() => onRightIconChange?.(iconItem.id)}
+                      style={{ anchorName: `--icon-${iconItem.id}` }}
                       className={`p-2 rounded-md transition-colors ${
                         iconItem.active
                           ? 'text-[#4a433c] bg-[#f2f0ee] shadow-sm ring-1 ring-[#e6e2dc]'
@@ -313,8 +317,14 @@ export const Header = ({
       {hasSubNav && (
         <div className="bg-[#f2f0ee]">
           <div className={navContainerClassName} style={containerStyle}>
-            <div className="flex h-11 items-center gap-8 px-12 py-0">
-              <nav className="flex items-center gap-2">
+            <div className="h-11 flex items-center">
+              <nav
+                className="absolute flex items-center gap-2"
+                style={{
+                  positionAnchor: `--nav-${activeMainNav?.toLowerCase().replace(/\s+/g, '-')}`,
+                  justifySelf: 'anchor-center',
+                }}
+              >
                 {activeNavItem?.subItems?.map((subItem) => (
                   <div key={subItem.name} className="relative">
                     <button
@@ -357,7 +367,7 @@ export const Header = ({
       {hasRightSubNav && (
         <div className="bg-[#f2f0ee]">
           <div className={navContainerClassName} style={containerStyle}>
-            <div className="flex h-11 items-center gap-8 px-12 py-0">
+            <div className="h-11 px-6 flex items-center justify-end">
               <nav className="flex items-center gap-2">
                 {activeRightIconItem?.subItems?.map((subItem) => (
                   <div key={subItem.name} className="relative">
