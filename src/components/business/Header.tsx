@@ -10,6 +10,11 @@ interface NavItem {
     name: string;
     active?: boolean;
     isExternal?: boolean;
+    subItems?: Array<{
+      name: string;
+      active?: boolean;
+      isExternal?: boolean;
+    }>;
   }>;
 }
 
@@ -33,7 +38,8 @@ interface HeaderProps {
   onBreakpointPresetChange?: (presetId: string) => void;
   activeMainNav?: string;
   activeSubNav?: string;
-  onNavChange?: (mainNav: string, subNav?: string) => void;
+  activeThirdNav?: string;
+  onNavChange?: (mainNav: string, subNav?: string, thirdNav?: string) => void;
   activeRightIcon?: string;
   activeRightSubNav?: string;
   onRightIconChange?: (iconId: string, subNav?: string) => void;
@@ -48,6 +54,7 @@ export const Header = ({
   onBreakpointPresetChange: _onBreakpointPresetChange,
   activeMainNav = 'Planning',
   activeSubNav = 'Clients',
+  activeThirdNav = '',
   onNavChange,
   activeRightIcon = '',
   activeRightSubNav = '',
@@ -64,7 +71,24 @@ export const Header = ({
   // Navigation structure based on Advisor Portal Navigation Tree
   const navigationItems: NavItem[] = [
     { name: 'Dashboard' },
-    { name: 'Clients' },
+    {
+      name: 'Planning',
+      subItems: [
+        { name: 'Clients' },
+        {
+          name: 'Models',
+          subItems: [
+            { name: 'Portfolios' },
+            { name: 'Glide' },
+            { name: 'Scenarios' },
+            { name: 'Vesting' },
+            { name: 'Retirement Spending' },
+            { name: 'Annuities' },
+          ],
+        },
+        { name: 'Assumptions' },
+      ],
+    },
     {
       name: 'ChubbyIntel',
       subItems: [
@@ -95,20 +119,8 @@ export const Header = ({
         { name: 'Categories' },
       ],
     },
-    {
-      name: 'Models',
-      subItems: [
-        { name: 'Portfolios' },
-        { name: 'Glide' },
-        { name: 'Scenarios' },
-        { name: 'Vesting' },
-        { name: 'Retirement Spending' },
-        { name: 'Annuities' },
-      ],
-    },
     { name: 'Templates' },
     { name: 'Client Settings' },
-    { name: 'Assumptions' },
     { name: 'Integrations' },
     { name: 'Admin', isExternal: true },
     { name: 'Help', isExternal: true },
@@ -181,11 +193,26 @@ export const Header = ({
   const hasSubNav =
     activeNavItem?.subItems && activeNavItem.subItems.length > 0;
 
+  // Find active sub item and check if it has third level nav
+  const activeSubItem = activeNavItem?.subItems?.find(
+    (subItem) => subItem.name === activeSubNav
+  );
+  const hasThirdNav =
+    activeSubItem?.subItems && activeSubItem.subItems.length > 0;
+
   navigationItems.forEach((item) => {
     item.active = item.name === activeMainNav;
     if (item.subItems) {
       item.subItems.forEach((subItem) => {
         subItem.active = subItem.name === activeSubNav && item.active;
+        if (subItem.subItems) {
+          subItem.subItems.forEach((thirdItem) => {
+            thirdItem.active =
+              thirdItem.name === activeThirdNav &&
+              subItem.active &&
+              item.active;
+          });
+        }
       });
     }
   });
@@ -228,7 +255,7 @@ export const Header = ({
             </div>
 
             {/* Navigation */}
-            <nav className="flex items-center gap-1">
+            <nav className="flex items-center gap-0.5">
               {/* Primary navigation items (first 6 only) */}
               {primaryNavItems.map((item) => (
                 <button
@@ -237,9 +264,9 @@ export const Header = ({
                   style={{
                     anchorName: `--nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`,
                   }}
-                  className={`px-3 py-2 rounded-md text-base font-semibold transition-all ${
+                  className={`px-3 py-2 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-all ${
                     item.active
-                      ? 'bg-[#f2f0ee] text-[#4a433c] shadow-sm ring-1 ring-[#e6e2dc]'
+                      ? 'bg-gray-300 text-[#4a433c] shadow-sm ring-1 ring-[#e6e2dc]'
                       : 'text-[#635a52] hover:text-[#4a433c] hover:bg-[#f8f7f5]'
                   } ${item.isExternal ? 'flex items-center gap-1' : ''}`}
                 >
@@ -267,7 +294,7 @@ export const Header = ({
           {/* Right side - Actions and User */}
           <div className="flex items-center gap-3">
             {/* Right Side Icons */}
-            <div className="flex gap-1">
+            <div className="flex gap-0.5">
               {rightSideIcons.map((iconItem) => {
                 const IconComponent = iconItem.icon;
                 const isNotifications = iconItem.id === 'notifications';
@@ -279,7 +306,7 @@ export const Header = ({
                       style={{ anchorName: `--icon-${iconItem.id}` }}
                       className={`p-2 rounded-md transition-colors ${
                         iconItem.active
-                          ? 'text-[#4a433c] bg-[#f2f0ee] shadow-sm ring-1 ring-[#e6e2dc]'
+                          ? 'text-[#4a433c] bg-gray-300 shadow-sm ring-1 ring-[#e6e2dc]'
                           : 'text-[#b8b1a9] hover:text-[#635a52] hover:bg-[#f8f7f5]'
                       }`}
                     >
@@ -315,11 +342,11 @@ export const Header = ({
 
       {/* Sub Navigation - for main navigation */}
       {hasSubNav && (
-        <div className="bg-[#f2f0ee]">
+        <div className="bg-gray-300">
           <div className={navContainerClassName} style={containerStyle}>
             <div className="h-11 flex items-center">
               <nav
-                className="absolute flex items-center gap-2"
+                className="absolute flex items-center gap-0.5"
                 style={{
                   positionAnchor: `--nav-${activeMainNav?.toLowerCase().replace(/\s+/g, '-')}`,
                   justifySelf: 'anchor-center',
@@ -328,8 +355,17 @@ export const Header = ({
                 {activeNavItem?.subItems?.map((subItem) => (
                   <div key={subItem.name} className="relative">
                     <button
-                      onClick={() => onNavChange?.(activeMainNav, subItem.name)}
-                      className={`px-3 py-1 rounded-md text-base font-semibold transition-colors ${
+                      onClick={() =>
+                        onNavChange?.(
+                          activeMainNav,
+                          subItem.name,
+                          subItem.subItems ? '' : undefined
+                        )
+                      }
+                      style={{
+                        anchorName: `--sub-nav-${subItem.name.toLowerCase().replace(/\s+/g, '-')}`,
+                      }}
+                      className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-colors ${
                         subItem.active
                           ? 'text-[#4a433c]'
                           : 'text-[#635a52] hover:text-[#4a433c]'
@@ -353,7 +389,60 @@ export const Header = ({
                       )}
                     </button>
                     {subItem.active && (
-                      <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#d1ccc6] rounded-full" />
+                      <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-600 rounded-full" />
+                    )}
+                  </div>
+                ))}
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Third Level Navigation - for sub items with children (like Models under Planning) */}
+      {hasThirdNav && (
+        <div className="bg-gray-100">
+          <div className={navContainerClassName} style={containerStyle}>
+            <div className="h-11 flex items-center justify-end px-6 border-b border-gray-300">
+              <nav className="flex items-center gap-0.5">
+                {activeSubItem?.subItems?.map((thirdItem) => (
+                  <div key={thirdItem.name} className="relative">
+                    <button
+                      onClick={() =>
+                        onNavChange?.(
+                          activeMainNav,
+                          activeSubNav,
+                          thirdItem.name
+                        )
+                      }
+                      style={{
+                        anchorName: `--third-nav-${thirdItem.name.toLowerCase().replace(/\s+/g, '-')}`,
+                      }}
+                      className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-colors ${
+                        thirdItem.active
+                          ? 'text-[#4a433c]'
+                          : 'text-[#635a52] hover:text-[#4a433c]'
+                      } ${thirdItem.isExternal ? 'flex items-center gap-1' : ''}`}
+                    >
+                      {thirdItem.name}
+                      {thirdItem.isExternal && (
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                    {thirdItem.active && (
+                      <div className="absolute bottom-0 left-2 right-2 h-1 bg-blue-500 rounded-full" />
                     )}
                   </div>
                 ))}
@@ -365,17 +454,17 @@ export const Header = ({
 
       {/* Sub Navigation - for right side icons */}
       {hasRightSubNav && (
-        <div className="bg-[#f2f0ee]">
+        <div className="bg-gray-300">
           <div className={navContainerClassName} style={containerStyle}>
             <div className="h-11 px-6 flex items-center justify-end">
-              <nav className="flex items-center gap-2">
+              <nav className="flex items-center gap-0.5">
                 {activeRightIconItem?.subItems?.map((subItem) => (
                   <div key={subItem.name} className="relative">
                     <button
                       onClick={() =>
                         onRightIconChange?.(activeRightIcon, subItem.name)
                       }
-                      className={`px-3 py-1 rounded-md text-base font-semibold transition-colors ${
+                      className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-colors ${
                         subItem.active
                           ? 'text-[#4a433c]'
                           : 'text-[#635a52] hover:text-[#4a433c]'
@@ -399,7 +488,7 @@ export const Header = ({
                       )}
                     </button>
                     {subItem.active && (
-                      <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#d1ccc6] rounded-full" />
+                      <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-600 rounded-full" />
                     )}
                   </div>
                 ))}
