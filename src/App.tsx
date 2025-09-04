@@ -17,7 +17,8 @@ function App() {
 
   // 导航状态
   const [activeMainNav, setActiveMainNav] = useState('Planning');
-  const [activeSubNav, setActiveSubNav] = useState('Clients');
+  const [activeSubNav, setActiveSubNav] = useState('Models');
+  const [activeThirdNav, setActiveThirdNav] = useState('Portfolios');
 
   // 右侧图标状态
   const [activeRightIcon, setActiveRightIcon] = useState('');
@@ -28,34 +29,52 @@ function App() {
   const [isResizing, setIsResizing] = useState(false);
 
   // 处理导航变更
-  const handleNavChange = useCallback((mainNav: string, subNav?: string) => {
-    const navSubDefaults: { [key: string]: string } = {
-      ChubbyIntel: 'Dashboard',
-      ChubbyFlows: 'Tasks',
-      ChubbyPay: 'Plans',
-      Risk: 'Summary',
-      Models: 'Portfolios',
-      Planning: 'Clients',
-    };
+  const handleNavChange = useCallback(
+    (mainNav: string, subNav?: string, thirdNav?: string) => {
+      const navSubDefaults: { [key: string]: string } = {
+        ChubbyIntel: 'Dashboard',
+        ChubbyFlows: 'Tasks',
+        ChubbyPay: 'Plans',
+        Risk: 'Summary',
+        Models: 'Portfolios',
+        Planning: 'Clients',
+      };
 
-    setActiveMainNav(mainNav);
-    // 清除右侧图标的激活状态，确保互斥
-    setActiveRightIcon('');
-    setActiveRightSubNav('');
+      const thirdNavDefaults: { [key: string]: string } = {
+        Models: 'Portfolios',
+      };
 
-    // 如果有子导航参数，设置子导航；否则清除子导航
-    if (subNav !== undefined) {
-      setActiveSubNav(subNav);
-    } else {
-      // 当切换主导航时，设置默认的子导航
-      setActiveSubNav(navSubDefaults[mainNav] || '');
-    }
+      setActiveMainNav(mainNav);
+      // 清除右侧图标的激活状态，确保互斥
+      setActiveRightIcon('');
+      setActiveRightSubNav('');
 
-    console.log('Navigation changed:', {
-      mainNav,
-      subNav: subNav || navSubDefaults[mainNav],
-    });
-  }, []);
+      // 如果有子导航参数，设置子导航；否则清除子导航
+      if (subNav !== undefined) {
+        setActiveSubNav(subNav);
+      } else {
+        // 当切换主导航时，设置默认的子导航
+        setActiveSubNav(navSubDefaults[mainNav] || '');
+      }
+
+      // 处理第三级导航
+      if (thirdNav !== undefined) {
+        setActiveThirdNav(thirdNav);
+      } else if (subNav !== undefined) {
+        // 当切换子导航时，设置默认的第三级导航
+        setActiveThirdNav(thirdNavDefaults[subNav] || '');
+      } else {
+        setActiveThirdNav('');
+      }
+
+      console.log('Navigation changed:', {
+        mainNav,
+        subNav: subNav || navSubDefaults[mainNav],
+        thirdNav: thirdNav || thirdNavDefaults[subNav || ''],
+      });
+    },
+    []
+  );
 
   // 处理右侧图标变更
   const handleRightIconChange = useCallback(
@@ -201,6 +220,7 @@ function App() {
           onBreakpointPresetChange={handleBreakpointPresetChange}
           activeMainNav={activeMainNav}
           activeSubNav={activeSubNav}
+          activeThirdNav={activeThirdNav}
           onNavChange={handleNavChange}
           activeRightIcon={activeRightIcon}
           activeRightSubNav={activeRightSubNav}

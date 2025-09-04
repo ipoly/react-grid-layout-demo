@@ -5,7 +5,16 @@
 ```zsh
 # Primary Navigation (前6个直接显示)
 ├── Dashboard
-├── Clients
+├── Planning
+│   ├── Clients
+│   ├── Models
+│   │   ├── Portfolios
+│   │   ├── Glide
+│   │   ├── Scenarios
+│   │   ├── Vesting
+│   │   ├── Retirement Spending
+│   │   └── Annuities
+│   └── Assumptions
 ├── ChubbyIntel
 │   ├── Dashboard
 │   ├── Client Overview
@@ -26,17 +35,9 @@
 
 # Right Side Icons (右侧图标区域，独立显示)
 ├── More (MoreHorizontal图标)
-│   ├── Models
-│   │   ├── Portfolios
-│   │   ├── Glide
-│   │   ├── Scenarios
-│   │   ├── Vesting
-│   │   ├── Retirement Spending
-│   │   └── Annuities
 │   ├── Admin (基于权限显示，外部链接)
 │   ├── Templates
 │   ├── Client Settings
-│   ├── Assumptions
 │   ├── Integrations
 │   └── Help (外部链接)
 ├── SSO to Partner (Key图标，基于权限和配置)
