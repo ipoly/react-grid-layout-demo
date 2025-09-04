@@ -13,6 +13,12 @@
     border-color: var(--color-border-primary);
   }
 
+  /* 设置最小宽度保护，避免在小视窗尺寸下出现布局问题 */
+  html,
+  body {
+    min-width: 1280px; /* 符合项目 1280-1680px 设计规范 */
+  }
+
   body {
     background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
