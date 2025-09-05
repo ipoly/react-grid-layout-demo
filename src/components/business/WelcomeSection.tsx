@@ -1,17 +1,15 @@
 import { Badge } from '@untitled-ui/components/base/badges/badges';
 import { Button } from '@untitled-ui/components/base/buttons/button';
-import { Layout, Plus, RotateCcw } from 'lucide-react';
+import { Layout, Plus } from 'lucide-react';
 
 interface WelcomeSectionProps {
   userName?: string;
-  onResetLayout?: () => void;
   isDragging?: boolean;
   isResizing?: boolean;
 }
 
 export const WelcomeSection = ({
   userName = 'Emma',
-  onResetLayout,
   isDragging = false,
   isResizing = false,
 }: WelcomeSectionProps) => {
@@ -41,26 +39,16 @@ export const WelcomeSection = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <Button
-          color="tertiary"
-          size="md"
-          iconLeading={RotateCcw}
-          onClick={onResetLayout}
-          className="text-gray-600"
-        >
-          Reset Layout
-        </Button>
-
-        <Button color="primary" size="md" iconLeading={Plus}>
-          Add Widget
-        </Button>
-      </div>
-
       {/* Help text */}
       <div className="text-sm text-gray-600 flex items-center gap-2 mt-2">
         <Layout className="w-4 h-4" />
         <span>Drag and resize widgets to customize your dashboard</span>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button color="primary" size="md" iconLeading={Plus}>
+          Add Widget
+        </Button>
       </div>
     </div>
   );
