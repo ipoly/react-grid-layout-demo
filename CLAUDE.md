@@ -423,6 +423,184 @@ export default defineConfig({
 </FeaturedIcon>
 ```
 
+## Navigation System Architecture
+
+### 统一导航回调系统
+
+项目采用统一的导航回调架构，将主导航和右侧图标导航整合为一个类型安全的系统。
+
+#### 核心类型定义
+
+```typescript
+// src/types/navigation.ts
+export interface NavigationState {
+  /** 导航类型：主导航或右侧图标导航 */
+  type: 'main' | 'icon';
+  /** 导航路径数组，按层级顺序排列 */
+  path: string[];
+  /** 可选的来源标识符，用于标识特定的图标或特殊情况 */
+  source?: string;
+}
+
+export type NavigationChangeHandler = (navigation: NavigationState) => void;
+```
+
+#### NavigationUtils 工具函数
+
+```typescript
+// 转换函数：从统一格式转为组件特定格式
+NavigationUtils.toMainNavigation(navigation): [string, string?, string?]
+NavigationUtils.toRightIconNavigation(navigation): [string, string?]
+
+// 创建函数：从组件参数创建统一格式
+NavigationUtils.fromMainNavigation(mainNav, subNav?, thirdNav?, source?): NavigationState
+NavigationUtils.fromRightIconNavigation(iconId, subNav?): NavigationState
+
+// 比较函数：判断两个导航状态是否相等
+NavigationUtils.isEqual(a: NavigationState, b: NavigationState): boolean
+```
+
+#### Header 组件使用方式
+
+```tsx
+// 新的统一回调接口 (推荐)
+<Header
+  onNavigationChange={(navigation: NavigationState) => {
+    if (navigation.type === 'main') {
+      const [mainNav, subNav, thirdNav] = NavigationUtils.toMainNavigation(navigation);
+      // 处理主导航逻辑
+    } else if (navigation.type === 'icon') {
+      const [iconId, subNav] = NavigationUtils.toRightIconNavigation(navigation);
+      // 处理图标导航逻辑
+    }
+  }}
+/>
+
+// 向后兼容的回调 (已弃用)
+<Header
+  onNavChange={(mainNav, subNav, thirdNav) => { /* ... */ }}
+  onRightIconChange={(iconId, subNav) => { /* ... */ }}
+/>
+```
+
+### 面包屑导航系统
+
+面包屑导航提供多级导航路径显示和快速切换功能，仅在 `hover` 导航模式下激活。
+
+#### 功能特性
+
+- **层级显示**: 显示完整的导航路径 (主导航 > 子导航 > 三级导航)
+- **右侧图标支持**: 支持右侧图标的导航路径显示
+- **下拉切换**: 除第一级外的所有层级都支持下拉菜单快速切换兄弟节点
+- **智能显示**: 只在有多个兄弟节点时显示下拉菜单
+
+#### 实现架构
+
+```typescript
+interface BreadcrumbItem {
+  label: string; // 显示文本
+  level: number; // 层级 (0, 1, 2)
+  type: 'rightIcon' | 'mainNav'; // 导航类型
+  iconId?: string; // 右侧图标ID (type='rightIcon'时)
+  siblings?: Array<{
+    // 兄弟节点数据
+    name: string;
+    active: boolean;
+    isExternal?: boolean;
+  }>;
+  hasDropdown?: boolean; // 是否显示下拉菜单
+}
+```
+
+#### 兄弟节点计算逻辑
+
+```typescript
+const getSiblings = (item: BreadcrumbItem) => {
+  if (item.type === 'rightIcon' && item.iconId) {
+    // 获取右侧图标的子菜单项作为兄弟节点
+    const rightIcon = rightSideIcons.find((icon) => icon.id === item.iconId);
+    return rightIcon?.subItems || [];
+  } else if (item.type === 'mainNav') {
+    if (item.level === 1) {
+      // Level 1: 当前主导航的子导航项
+      const mainNavItem = navigationItems.find(
+        (nav) => nav.name === activeMainNav
+      );
+      return mainNavItem?.subItems || [];
+    } else if (item.level === 2) {
+      // Level 2: 当前子导航的三级导航项
+      const subNavItem = activeNavItem?.subItems?.find(
+        (sub) => sub.name === activeSubNav
+      );
+      return subNavItem?.subItems || [];
+    }
+  }
+  return [];
+};
+```
+
+#### 下拉菜单UI特性
+
+- **Hover触发**: 使用CSS `:hover` 伪类实现悬停显示
+- **过渡动画**: 200ms缓入缓出动画，带垂直平移效果
+- **错列显示**: 使用 `animationDelay` 实现菜单项的错列出现效果
+- **桥接区域**: 不可见的桥接元素确保鼠标移动时的流畅体验
+
+### 导航模式对比
+
+| 功能     | Horizontal Mode | Hover Mode     | Sidebar Mode    |
+| -------- | --------------- | -------------- | --------------- |
+| 主导航   | 水平导航栏      | 悬停下拉菜单   | 侧边栏 (开发中) |
+| 子导航   | 水平子导航栏    | 包含在下拉菜单 | -               |
+| 三级导航 | 独立水平栏      | 二级下拉菜单   | -               |
+| 面包屑   | ❌              | ✅             | -               |
+| 图标导航 | 水平子导航栏    | 悬停下拉菜单   | -               |
+
+### 最佳实践
+
+#### 导航回调优化
+
+```tsx
+// ✅ 推荐：使用统一回调
+const handleNavigationChange = useCallback((navigation: NavigationState) => {
+  // 统一处理所有导航变更
+}, []);
+
+// ❌ 避免：分离的回调函数
+const handleNavChange = useCallback((mainNav, subNav, thirdNav) => { ... }, []);
+const handleRightIconChange = useCallback((iconId, subNav) => { ... }, []);
+```
+
+#### 类型安全导航
+
+```tsx
+// ✅ 使用工具函数确保类型安全
+const navigation = NavigationUtils.fromMainNavigation(
+  'Planning',
+  'Models',
+  'Portfolios'
+);
+
+// ✅ 检查导航状态相等性
+if (NavigationUtils.isEqual(currentNav, targetNav)) {
+  // 导航状态相同，跳过处理
+}
+```
+
+#### 状态管理建议
+
+```tsx
+// ✅ 统一管理导航状态
+const [currentNavigation, setCurrentNavigation] = useState<NavigationState>({
+  type: 'main',
+  path: ['Planning', 'Models', 'Portfolios'],
+});
+
+// ✅ 使用工具函数提取具体值
+const [activeMain, activeSub, activeThird] =
+  NavigationUtils.toMainNavigation(currentNavigation);
+```
+
 ## TypeScript 类型设计模式
 
 ### 避免 HTML 属性冲突

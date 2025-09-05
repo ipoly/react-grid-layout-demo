@@ -10,6 +10,8 @@ import { TasksMetric } from './components/business/metrics/TasksMetric';
 import { MetricsBar } from './components/layouts/MetricsBar';
 import type { MetricConfig } from './components/layouts/MetricsBar';
 import { STORAGE_KEYS, cleanupOldVersions } from './config/storage';
+import type { NavigationState } from './types/navigation';
+import { NavigationUtils } from './types/navigation';
 
 function App() {
   // 断点预设状态
@@ -24,25 +26,33 @@ function App() {
   const [activeRightIcon, setActiveRightIcon] = useState('');
   const [activeRightSubNav, setActiveRightSubNav] = useState('');
 
+  // 导航模式状态
+  const [navigationMode, setNavigationMode] = useState<
+    'horizontal' | 'hover' | 'sidebar'
+  >('horizontal');
+
   // 状态管理
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
 
-  // 处理导航变更
-  const handleNavChange = useCallback(
-    (mainNav: string, subNav?: string, thirdNav?: string) => {
-      const navSubDefaults: { [key: string]: string } = {
-        ChubbyIntel: 'Dashboard',
-        ChubbyFlows: 'Tasks',
-        ChubbyPay: 'Plans',
-        Risk: 'Summary',
-        Models: 'Portfolios',
-        Planning: 'Clients',
-      };
+  // 统一导航处理函数
+  const handleNavigationChange = useCallback((navigation: NavigationState) => {
+    const navSubDefaults: { [key: string]: string } = {
+      ChubbyIntel: 'Dashboard',
+      ChubbyFlows: 'Tasks',
+      ChubbyPay: 'Plans',
+      Risk: 'Summary',
+      Models: 'Portfolios',
+      Planning: 'Clients',
+    };
 
-      const thirdNavDefaults: { [key: string]: string } = {
-        Models: 'Portfolios',
-      };
+    const thirdNavDefaults: { [key: string]: string } = {
+      Models: 'Portfolios',
+    };
+
+    if (navigation.type === 'main') {
+      const [mainNav, subNav, thirdNav] =
+        NavigationUtils.toMainNavigation(navigation);
 
       setActiveMainNav(mainNav);
       // 清除右侧图标的激活状态，确保互斥
@@ -67,47 +77,54 @@ function App() {
         setActiveThirdNav('');
       }
 
-      console.log('Navigation changed:', {
+      console.log('Main navigation changed:', {
         mainNav,
         subNav: subNav || navSubDefaults[mainNav],
         thirdNav: thirdNav || thirdNavDefaults[subNav || ''],
+        source: navigation.source,
       });
-    },
-    []
-  );
-
-  // 处理右侧图标变更
-  const handleRightIconChange = useCallback(
-    (iconId: string, subNav?: string) => {
-      // 从 Header.tsx 中获取右侧图标的配置
-      const getFirstSubItem = (id: string) => {
-        const iconConfigs = {
-          more: ['Models'], // More 下的第一项是 Models (navigationItems.slice(6))
-          sso: ['Goldman Sachs'], // SSO 下的第一项
-          vault: [], // Vault 没有子项
-          notifications: ['Notifications'], // Notifications 下的第一项
-          settings: ['Account'], // Settings 下的第一项
-        };
-        return iconConfigs[id as keyof typeof iconConfigs]?.[0] || '';
-      };
+    } else if (navigation.type === 'icon') {
+      const [iconId, subNav] =
+        NavigationUtils.toRightIconNavigation(navigation);
 
       setActiveRightIcon(iconId);
       // 清除主导航的激活状态，确保互斥
       setActiveMainNav('');
       setActiveSubNav('');
+      setActiveThirdNav('');
 
-      // 如果有子导航参数，设置子导航；否则设置第一个子项
+      // 设置右侧图标的子导航
       if (subNav !== undefined) {
         setActiveRightSubNav(subNav);
       } else {
         // 当切换右侧图标时，自动选择第一个子项
+        const getFirstSubItem = (id: string) => {
+          const iconConfigs = {
+            more: ['Models'], // More 下的第一项是 Models (navigationItems.slice(6))
+            sso: ['Goldman Sachs'], // SSO 下的第一项
+            vault: [], // Vault 没有子项
+            notifications: ['Notifications'], // Notifications 下的第一项
+            settings: ['Account'], // Settings 下的第一项
+          };
+          return iconConfigs[id as keyof typeof iconConfigs]?.[0] || '';
+        };
         setActiveRightSubNav(getFirstSubItem(iconId));
       }
 
-      console.log('Right icon changed:', {
+      console.log('Icon navigation changed:', {
         iconId,
-        subNav: subNav || getFirstSubItem(iconId),
+        subNav: subNav || 'auto-selected',
       });
+    }
+  }, []);
+
+  // 向后兼容的旧接口函数已移除，Header组件现在直接使用统一的onNavigationChange回调
+
+  // 处理导航模式变更
+  const handleNavigationModeChange = useCallback(
+    (mode: 'horizontal' | 'hover' | 'sidebar') => {
+      setNavigationMode(mode);
+      console.log('Navigation mode changed to:', mode);
     },
     []
   );
@@ -253,16 +270,17 @@ function App() {
           activeMainNav={activeMainNav}
           activeSubNav={activeSubNav}
           activeThirdNav={activeThirdNav}
-          onNavChange={handleNavChange}
           activeRightIcon={activeRightIcon}
           activeRightSubNav={activeRightSubNav}
-          onRightIconChange={handleRightIconChange}
+          onNavigationChange={handleNavigationChange}
           onResetLayout={resetLayout}
-          containerClassName="max-w-7xl mx-auto"
+          navigationMode={navigationMode}
+          onNavigationModeChange={handleNavigationModeChange}
+          containerClassName="max-w-[1680px] min-w-[1280px] mx-auto"
         />
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-[1680px] min-w-[1280px] mx-auto px-6 py-8">
         <WelcomeSection isDragging={isDragging} isResizing={isResizing} />
 
         {/* 顶部指标栏 */}
