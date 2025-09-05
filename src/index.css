@@ -16,7 +16,7 @@
   /* 设置最小宽度保护，避免在小视窗尺寸下出现布局问题 */
   html,
   body {
-    min-width: 1280px; /* 符合项目 1280-1680px 设计规范 */
+    min-width: 1280px; /* 符合项目 1280-1680px 设计规范，与断点逻辑保持一致 */
   }
 
   body {
@@ -36,6 +36,60 @@
 }
 
 @layer overrides {
+  /* Dropdown menu item staggered animation */
+  .dropdown-item-animate {
+    opacity: 0%;
+    transform: translateY(4px);
+    animation: dropdown-item-fade-in 0.2s ease-out forwards;
+  }
+
+  .dropdown-item-animate:nth-child(1) {
+    animation-delay: 0ms;
+  }
+
+  .dropdown-item-animate:nth-child(2) {
+    animation-delay: 25ms;
+  }
+
+  .dropdown-item-animate:nth-child(3) {
+    animation-delay: 50ms;
+  }
+
+  .dropdown-item-animate:nth-child(4) {
+    animation-delay: 75ms;
+  }
+
+  .dropdown-item-animate:nth-child(5) {
+    animation-delay: 100ms;
+  }
+
+  .dropdown-item-animate:nth-child(6) {
+    animation-delay: 125ms;
+  }
+
+  .dropdown-item-animate:nth-child(7) {
+    animation-delay: 150ms;
+  }
+
+  .dropdown-item-animate:nth-child(8) {
+    animation-delay: 175ms;
+  }
+
+  .dropdown-item-animate:nth-child(9) {
+    animation-delay: 200ms;
+  }
+
+  .dropdown-item-animate:nth-child(10) {
+    animation-delay: 225ms;
+  }
+
+  @keyframes dropdown-item-fade-in {
+    to {
+      opacity: 100%;
+      transform: translateY(0);
+    }
+  }
+
   /* Ensure animation is not broken */
   .react-grid-item {
     transition: all 200ms ease;

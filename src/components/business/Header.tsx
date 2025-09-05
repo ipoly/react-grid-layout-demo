@@ -1,7 +1,12 @@
+import React from 'react';
+
 import { Avatar } from '@untitled-ui/components/base/avatar/avatar';
 import { Badge } from '@untitled-ui/components/base/badges/badges';
+import { useBreakpoint } from '@untitled-ui/hooks/use-breakpoint';
 import {
   Bell,
+  ChevronDown,
+  ChevronRight,
   Folder,
   Key,
   MoreHorizontal,
@@ -11,6 +16,16 @@ import {
   RotateCcw,
   Settings,
 } from 'lucide-react';
+
+import type {
+  LegacyNavChangeHandler,
+  LegacyRightIconChangeHandler,
+  NavigationChangeHandler,
+  NavigationState,
+} from '../../types/navigation';
+import { NavigationUtils } from '../../types/navigation';
+
+type NavigationMode = 'horizontal' | 'hover' | 'sidebar';
 
 interface NavItem {
   name: string;
@@ -49,13 +64,22 @@ interface HeaderProps {
   activeMainNav?: string;
   activeSubNav?: string;
   activeThirdNav?: string;
-  onNavChange?: (mainNav: string, subNav?: string, thirdNav?: string) => void;
   activeRightIcon?: string;
   activeRightSubNav?: string;
-  onRightIconChange?: (iconId: string, subNav?: string) => void;
   onResetLayout?: () => void;
+  navigationMode?: NavigationMode;
+  onNavigationModeChange?: (mode: NavigationMode) => void;
   containerClassName?: string;
   containerStyle?: React.CSSProperties;
+
+  // 新的统一导航回调
+  onNavigationChange?: NavigationChangeHandler;
+
+  // 向后兼容的回调（将被弃用）
+  /** @deprecated 使用 onNavigationChange 替代 */
+  onNavChange?: LegacyNavChangeHandler;
+  /** @deprecated 使用 onNavigationChange 替代 */
+  onRightIconChange?: LegacyRightIconChangeHandler;
 }
 
 export const Header = ({
@@ -66,13 +90,20 @@ export const Header = ({
   activeMainNav = 'Planning',
   activeSubNav = 'Clients',
   activeThirdNav = '',
-  onNavChange,
   activeRightIcon = '',
   activeRightSubNav = '',
-  onRightIconChange,
   onResetLayout,
-  containerClassName = 'max-w-7xl mx-auto',
+  navigationMode = 'horizontal',
+  onNavigationModeChange,
+  containerClassName = 'max-w-[1680px] min-w-[1200px] mx-auto',
   containerStyle = {},
+
+  // 新的统一导航回调
+  onNavigationChange,
+
+  // 向后兼容的回调
+  onNavChange,
+  onRightIconChange,
 }: HeaderProps) => {
   /**
    * Navigation container classes:
@@ -80,6 +111,54 @@ export const Header = ({
    * Navigation bars manage their own vertical spacing through fixed heights.
    */
   const navContainerClassName = containerClassName;
+
+  // 统一导航处理函数
+  const handleNavigationChange = React.useCallback(
+    (navigation: NavigationState) => {
+      // 优先使用新的统一回调
+      if (onNavigationChange) {
+        onNavigationChange(navigation);
+        return;
+      }
+
+      // 向后兼容：转换为旧的回调格式
+      if (navigation.type === 'main' && onNavChange) {
+        const [mainNav, subNav, thirdNav] =
+          NavigationUtils.toMainNavigation(navigation);
+        onNavChange(mainNav, subNav, thirdNav);
+      } else if (navigation.type === 'icon' && onRightIconChange) {
+        const [iconId, subNav] =
+          NavigationUtils.toRightIconNavigation(navigation);
+        onRightIconChange(iconId, subNav);
+      }
+    },
+    [onNavigationChange, onNavChange, onRightIconChange]
+  );
+
+  // Responsive navigation configuration
+  const isXL = useBreakpoint('xl'); // >= 1280px
+  const is2XL = useBreakpoint('2xl'); // >= 1536px
+
+  // Custom hook for 1440px breakpoint detection
+  const [windowWidth, setWindowWidth] = React.useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1280
+  );
+
+  React.useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Dynamic navigation item count based on screen width
+  const getVisibleNavCount = () => {
+    if (is2XL || windowWidth >= 1680) return 10; // 1680px+: show 10 items
+    if (windowWidth >= 1440) return 8; // 1440px+: show 8 items
+    if (isXL || windowWidth >= 1280) return 6; // 1280px+: show 6 items
+    return 6; // fallback
+  };
+
+  const visibleNavCount = getVisibleNavCount();
   // Navigation structure based on Advisor Portal Navigation Tree
   const navigationItems: NavItem[] = [
     { name: 'Dashboard' },
@@ -138,9 +217,9 @@ export const Header = ({
     { name: 'Help', isExternal: true },
   ];
 
-  // Split navigation items: first 6 in primary nav, rest in "More" dropdown
-  const primaryNavItems = navigationItems.slice(0, 6);
-  const moreNavItems = navigationItems.slice(6);
+  // Split navigation items dynamically based on screen width
+  const primaryNavItems = navigationItems.slice(0, visibleNavCount);
+  const moreNavItems = navigationItems.slice(visibleNavCount);
 
   // Right side icons definition
   const rightSideIcons: RightSideIconItem[] = [
@@ -206,9 +285,16 @@ export const Header = ({
     activeNavItem?.subItems && activeNavItem.subItems.length > 0;
 
   // Find active sub item and check if it has third level nav
-  const activeSubItem = activeNavItem?.subItems?.find(
-    (subItem) => subItem.name === activeSubNav
-  );
+  let activeSubItem;
+  if (activeMainNav === 'More') {
+    // When "More" is active, look for sub-item in moreNavItems
+    const moreItem = moreNavItems.find((item) => item.name === activeSubNav);
+    activeSubItem = moreItem;
+  } else {
+    activeSubItem = activeNavItem?.subItems?.find(
+      (subItem) => subItem.name === activeSubNav
+    );
+  }
   const hasThirdNav =
     activeSubItem?.subItems && activeSubItem.subItems.length > 0;
 
@@ -239,319 +325,1173 @@ export const Header = ({
     activeRightIconItem.subItems.length > 0;
 
   rightSideIcons.forEach((icon) => {
-    icon.active = icon.id === activeRightIcon;
+    // Special handling for "More" icon - it's active when activeMainNav is "More"
+    if (icon.id === 'more') {
+      icon.active = activeMainNav === 'More';
+    } else {
+      icon.active = icon.id === activeRightIcon;
+    }
+
     if (icon.subItems) {
       icon.subItems.forEach((subItem) => {
-        subItem.active = subItem.name === activeRightSubNav && icon.active;
+        if (icon.id === 'more') {
+          // For "More" items, they are active when "More" is main nav and this is sub nav
+          subItem.active =
+            activeMainNav === 'More' && activeSubNav === subItem.name;
+        } else {
+          subItem.active = subItem.name === activeRightSubNav && icon.active;
+        }
       });
     }
   });
 
-  return (
-    <div className="bg-white">
-      {/* Main Navigation */}
-      <div className={navContainerClassName} style={containerStyle}>
-        <div className="flex h-[72px] items-center justify-between px-6 py-0">
-          {/* Left side - Logo and Navigation */}
-          <div className="flex items-center gap-6">
-            {/* Logo */}
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-brand rounded flex items-center justify-center">
-                <span className="text-brand-foreground font-bold text-sm">
-                  CC
+  // Breadcrumb Navigation Component
+  const BreadcrumbNavigation = () => {
+    if (navigationMode !== 'hover') return null;
+
+    // Define the breadcrumb item type
+    type BreadcrumbItem = {
+      label: string;
+      level: number;
+      type: 'rightIcon' | 'mainNav';
+      iconId?: string;
+      siblings?: Array<{
+        name: string;
+        active: boolean;
+        isExternal?: boolean;
+      }>;
+      hasDropdown?: boolean;
+    };
+
+    const breadcrumbItems: BreadcrumbItem[] = [];
+
+    // Function to get siblings for a breadcrumb item
+    const getSiblings = (
+      item: BreadcrumbItem
+    ): Array<{ name: string; active: boolean; isExternal?: boolean }> => {
+      if (item.type === 'rightIcon' && item.iconId) {
+        const rightIcon = rightSideIcons.find(
+          (icon) => icon.id === item.iconId
+        );
+        if (rightIcon?.subItems) {
+          return rightIcon.subItems.map((subItem) => ({
+            name: subItem.name,
+            active: subItem.active || false,
+            isExternal: subItem.isExternal,
+          }));
+        }
+      } else if (item.type === 'mainNav') {
+        if (item.level === 1) {
+          // Level 1: Get siblings from current main nav's subItems
+          const mainNavItem =
+            activeMainNav === 'More'
+              ? moreNavItems.find((nav) => nav.name === activeSubNav)
+              : navigationItems.find((nav) => nav.name === activeMainNav);
+          if (mainNavItem?.subItems) {
+            return mainNavItem.subItems.map((subItem) => ({
+              name: subItem.name,
+              active: subItem.active || false,
+              isExternal: subItem.isExternal,
+            }));
+          }
+        } else if (item.level === 2) {
+          // Level 2: Get siblings from current sub nav's subItems
+          let parentSubItem;
+          if (activeMainNav === 'More') {
+            parentSubItem = moreNavItems.find(
+              (nav) => nav.name === activeSubNav
+            );
+          } else {
+            const mainNavItem = navigationItems.find(
+              (nav) => nav.name === activeMainNav
+            );
+            parentSubItem = mainNavItem?.subItems?.find(
+              (sub) => sub.name === activeSubNav
+            );
+          }
+          if (parentSubItem?.subItems) {
+            return parentSubItem.subItems.map((thirdItem) => ({
+              name: thirdItem.name,
+              active: thirdItem.active || false,
+              isExternal: thirdItem.isExternal,
+            }));
+          }
+        }
+      }
+      return [];
+    };
+
+    // Build breadcrumb based on either main navigation or right-side icon navigation
+    if (activeRightIcon) {
+      // When a right-side icon is active, show that navigation path
+      const rightIcon = rightSideIcons.find(
+        (icon) => icon.id === activeRightIcon
+      );
+      if (rightIcon) {
+        breadcrumbItems.push({
+          label: rightIcon.name,
+          level: 0,
+          type: 'rightIcon',
+          iconId: rightIcon.id,
+        });
+
+        if (activeRightSubNav) {
+          const subNavItem = {
+            label: activeRightSubNav,
+            level: 1,
+            type: 'rightIcon' as const,
+            iconId: rightIcon.id,
+          };
+          const siblings = getSiblings(subNavItem);
+          breadcrumbItems.push({
+            ...subNavItem,
+            siblings,
+            hasDropdown: siblings.length > 1,
+          });
+        }
+      }
+    } else if (activeMainNav) {
+      // When main navigation is active, show that navigation path
+      breadcrumbItems.push({
+        label: activeMainNav,
+        level: 0,
+        type: 'mainNav',
+      });
+
+      if (activeSubNav) {
+        const subNavItem = {
+          label: activeSubNav,
+          level: 1,
+          type: 'mainNav' as const,
+        };
+        const siblings = getSiblings(subNavItem);
+        breadcrumbItems.push({
+          ...subNavItem,
+          siblings,
+          hasDropdown: siblings.length > 1,
+        });
+      }
+
+      if (activeThirdNav) {
+        const thirdNavItem = {
+          label: activeThirdNav,
+          level: 2,
+          type: 'mainNav' as const,
+        };
+        const siblings = getSiblings(thirdNavItem);
+        breadcrumbItems.push({
+          ...thirdNavItem,
+          siblings,
+          hasDropdown: siblings.length > 1,
+        });
+      }
+    }
+
+    const handleBreadcrumbClick = (item: BreadcrumbItem) => {
+      if (item.type === 'rightIcon' && item.iconId) {
+        if (item.level === 0) {
+          const navigation = NavigationUtils.fromRightIconNavigation(
+            item.iconId
+          );
+          handleNavigationChange(navigation);
+        } else if (item.level === 1) {
+          const navigation = NavigationUtils.fromRightIconNavigation(
+            item.iconId,
+            activeRightSubNav
+          );
+          handleNavigationChange(navigation);
+        }
+      } else if (item.type === 'mainNav') {
+        if (item.level === 0) {
+          const navigation = NavigationUtils.fromMainNavigation(activeMainNav);
+          handleNavigationChange(navigation);
+        } else if (item.level === 1) {
+          const navigation = NavigationUtils.fromMainNavigation(
+            activeMainNav,
+            activeSubNav
+          );
+          handleNavigationChange(navigation);
+        } else if (item.level === 2) {
+          const navigation = NavigationUtils.fromMainNavigation(
+            activeMainNav,
+            activeSubNav,
+            activeThirdNav
+          );
+          handleNavigationChange(navigation);
+        }
+      }
+    };
+
+    const handleSiblingClick = (item: BreadcrumbItem, siblingName: string) => {
+      if (item.type === 'rightIcon' && item.iconId) {
+        if (item.level === 1) {
+          const navigation = NavigationUtils.fromRightIconNavigation(
+            item.iconId,
+            siblingName
+          );
+          handleNavigationChange(navigation);
+        }
+      } else if (item.type === 'mainNav') {
+        if (item.level === 1) {
+          // Clicking a sibling at level 1 (sub navigation)
+          const navigation = NavigationUtils.fromMainNavigation(
+            activeMainNav,
+            siblingName
+          );
+          handleNavigationChange(navigation);
+        } else if (item.level === 2) {
+          // Clicking a sibling at level 2 (third navigation)
+          const navigation = NavigationUtils.fromMainNavigation(
+            activeMainNav,
+            activeSubNav,
+            siblingName
+          );
+          handleNavigationChange(navigation);
+        }
+      }
+    };
+
+    // Don't render empty breadcrumb
+    if (breadcrumbItems.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className={navContainerClassName} style={containerStyle}>
+          <nav className="flex items-center h-10 px-6 text-sm">
+            {breadcrumbItems.map((item, index) => (
+              <React.Fragment key={index}>
+                {index > 0 && (
+                  <ChevronRight className="mx-2 h-3 w-3 text-gray-400" />
+                )}
+
+                {/* Breadcrumb item with optional dropdown */}
+                <div className={item.hasDropdown ? 'group relative' : ''}>
+                  <button
+                    onClick={() => handleBreadcrumbClick(item)}
+                    className={`flex items-center gap-1 transition-colors ${
+                      index === breadcrumbItems.length - 1
+                        ? 'text-gray-900 font-medium'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {item.label}
+                    {item.hasDropdown && (
+                      <ChevronDown className="h-3 w-3 text-gray-400" />
+                    )}
+                  </button>
+
+                  {/* Dropdown menu for siblings */}
+                  {item.hasDropdown &&
+                    item.siblings &&
+                    item.siblings.length > 1 && (
+                      <div className="absolute top-full left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
+                        {/* Invisible bridge area */}
+                        <div className="h-2 w-full" />
+
+                        {/* Actual dropdown menu */}
+                        <div className="bg-white rounded-lg shadow-lg ring-1 ring-gray-200 py-1 min-w-[160px]">
+                          {item.siblings.map((sibling, siblingIndex) => (
+                            <button
+                              key={sibling.name}
+                              onClick={() =>
+                                handleSiblingClick(item, sibling.name)
+                              }
+                              className={`dropdown-item-animate flex w-full items-center px-3 py-2 text-sm transition-colors ${
+                                sibling.active
+                                  ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                                  : 'text-gray-700 hover:bg-gray-100'
+                              }`}
+                              style={{
+                                animationDelay: `${siblingIndex * 25}ms`,
+                              }}
+                            >
+                              <span className="flex items-center">
+                                {sibling.name}
+                                {sibling.isExternal && (
+                                  <svg
+                                    className="w-3 h-3 ml-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                    />
+                                  </svg>
+                                )}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </React.Fragment>
+            ))}
+          </nav>
+        </div>
+      </div>
+    );
+  };
+
+  // Hover Navigation Layout Component
+  const HoverNavigationLayout = () => {
+    return (
+      <>
+        {/* Main Navigation with Hover Dropdowns */}
+        <div className={navContainerClassName} style={containerStyle}>
+          <div className="flex h-[72px] items-center justify-between px-6 py-0">
+            {/* Left side - Logo and Navigation */}
+            <div className="flex items-center gap-6">
+              {/* Logo */}
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-brand rounded flex items-center justify-center">
+                  <span className="text-brand-foreground font-bold text-sm">
+                    CC
+                  </span>
+                </div>
+                <span className="ml-2 text-lg font-semibold text-gray-900">
+                  ChubbyCapital
                 </span>
               </div>
-              <span className="ml-2 text-lg font-semibold text-gray-900">
-                ChubbyCapital
-              </span>
-            </div>
 
-            {/* Navigation */}
-            <nav className="flex items-center gap-0.5">
-              {/* Primary navigation items (first 6 only) */}
-              {primaryNavItems.map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => onNavChange?.(item.name)}
-                  style={{
-                    anchorName: `--nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`,
-                  }}
-                  className={`px-3 py-2 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-all ${
-                    item.active
-                      ? 'bg-gray-300 text-[#4a433c] shadow-sm ring-1 ring-[#e6e2dc]'
-                      : 'text-[#635a52] hover:text-[#4a433c] hover:bg-[#f8f7f5]'
-                  } ${item.isExternal ? 'flex items-center gap-1' : ''}`}
-                >
-                  {item.name}
-                  {item.isExternal && (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </nav>
-          </div>
+              {/* Navigation with hover dropdowns */}
+              <nav className="flex items-center gap-0.5 whitespace-nowrap">
+                {primaryNavItems.map((item) => {
+                  const hasSubItems = item.subItems && item.subItems.length > 0;
 
-          {/* Right side - Actions and User */}
-          <div className="flex items-center gap-3">
-            {/* Right Side Icons */}
-            <div className="flex gap-0.5">
-              {rightSideIcons.map((iconItem) => {
-                const IconComponent = iconItem.icon;
-                const isNotifications = iconItem.id === 'notifications';
-
-                return (
-                  <div key={iconItem.id} className="relative">
-                    <button
-                      onClick={() => onRightIconChange?.(iconItem.id)}
-                      style={{ anchorName: `--icon-${iconItem.id}` }}
-                      className={`p-2 rounded-md transition-colors ${
-                        iconItem.active
-                          ? 'text-[#4a433c] bg-gray-300 shadow-sm ring-1 ring-[#e6e2dc]'
-                          : 'text-[#b8b1a9] hover:text-[#635a52] hover:bg-[#f8f7f5]'
-                      }`}
-                    >
-                      <IconComponent className="w-5 h-5" />
-                    </button>
-
-                    {/* Notification badge only for notifications icon */}
-                    {isNotifications && (
-                      <Badge
-                        type="pill-color"
-                        color="error"
-                        size="sm"
-                        className="absolute -top-1 -right-1 w-2 h-2 p-0 min-w-0"
+                  return (
+                    <div key={item.name} className="group relative">
+                      <button
+                        onClick={() => {
+                          const navigation = NavigationUtils.fromMainNavigation(
+                            item.name
+                          );
+                          handleNavigationChange(navigation);
+                        }}
+                        className={`flex items-center gap-1 px-3 py-2 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-all duration-200 ease-in-out transform ${
+                          item.active
+                            ? 'bg-gray-300 text-[#4a433c] shadow-md ring-1 ring-[#e6e2dc] scale-105'
+                            : 'text-[#635a52] hover:text-[#4a433c] hover:bg-[#f8f7f5] hover:scale-102'
+                        }`}
                       >
-                        <span className="sr-only">New notifications</span>
-                      </Badge>
-                    )}
-                  </div>
-                );
-              })}
+                        {item.name}
+                        {hasSubItems && (
+                          <ChevronDown className="w-4 h-4 text-gray-400" />
+                        )}
+                        {item.isExternal && (
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                        )}
+                      </button>
+
+                      {/* Hover Dropdown for sub navigation */}
+                      {hasSubItems && (
+                        <div className="absolute top-full left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
+                          {/* Invisible bridge area */}
+                          <div className="h-2 w-full" />
+
+                          {/* Actual dropdown menu */}
+                          <div className="bg-white rounded-lg shadow-lg ring-1 ring-gray-200 py-1 min-w-[200px]">
+                            {item.subItems?.map((subItem) => {
+                              const hasThirdLevel =
+                                subItem.subItems && subItem.subItems.length > 0;
+
+                              return (
+                                <div
+                                  key={subItem.name}
+                                  className="group/sub relative"
+                                >
+                                  <button
+                                    onClick={() => {
+                                      const navigation =
+                                        NavigationUtils.fromMainNavigation(
+                                          item.name,
+                                          subItem.name
+                                        );
+                                      handleNavigationChange(navigation);
+                                    }}
+                                    className={`dropdown-item-animate flex w-full items-center justify-between px-4 py-2 text-sm transition-colors ${
+                                      subItem.active
+                                        ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                  >
+                                    <span className="flex items-center">
+                                      {subItem.name}
+                                      {subItem.isExternal && (
+                                        <svg
+                                          className="w-3 h-3 ml-1"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                          />
+                                        </svg>
+                                      )}
+                                    </span>
+                                    {hasThirdLevel && (
+                                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                                    )}
+                                  </button>
+
+                                  {/* Third level dropdown */}
+                                  {hasThirdLevel && (
+                                    <div className="absolute left-full top-0 opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-200 ease-out transform translate-x-2 group-hover/sub:translate-x-0 z-50">
+                                      {/* Invisible bridge */}
+                                      <div className="w-2 h-full absolute -left-2 top-0" />
+
+                                      <div className="bg-white rounded-lg shadow-lg ring-1 ring-gray-200 py-1 min-w-[180px] ml-1">
+                                        {subItem.subItems?.map((thirdItem) => (
+                                          <button
+                                            key={thirdItem.name}
+                                            onClick={() => {
+                                              const navigation =
+                                                NavigationUtils.fromMainNavigation(
+                                                  item.name,
+                                                  subItem.name,
+                                                  thirdItem.name
+                                                );
+                                              handleNavigationChange(
+                                                navigation
+                                              );
+                                            }}
+                                            className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                                              thirdItem.active
+                                                ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                            }`}
+                                          >
+                                            {thirdItem.name}
+                                            {thirdItem.isExternal && (
+                                              <svg
+                                                className="w-3 h-3 ml-1"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M10 6H6a2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                                />
+                                              </svg>
+                                            )}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </nav>
             </div>
 
-            {/* User Avatar with CSS Hover Dropdown Menu */}
-            <div className="group relative">
-              <Avatar
-                size="md"
-                src={userAvatarUrl}
-                alt={userName}
-                initials={userName.charAt(0)}
-                className="cursor-pointer"
-              />
+            {/* Right side - Actions and User with hover dropdowns */}
+            <div className="flex items-center gap-3">
+              {/* Right Side Icons with hover dropdowns */}
+              <div className="flex gap-0.5">
+                {rightSideIcons.map((iconItem) => {
+                  const IconComponent = iconItem.icon;
+                  const isNotifications = iconItem.id === 'notifications';
 
-              <div className="absolute right-0 top-full w-62 hidden group-hover:block z-50">
-                {/* 不可见的桥接区域 - 扩大hover响应范围，向上覆盖部分导航区域 */}
-                <div className="h-6 w-full -mt-4" />
+                  return (
+                    <div key={iconItem.id} className="group relative">
+                      <button
+                        onClick={() => {
+                          if (
+                            iconItem.id === 'more' &&
+                            moreNavItems.length > 0
+                          ) {
+                            // For "More" icon, treat as main navigation and activate first sub-item
+                            const navigation =
+                              NavigationUtils.fromMainNavigation(
+                                'More',
+                                moreNavItems[0].name,
+                                undefined,
+                                'more'
+                              );
+                            handleNavigationChange(navigation);
+                          } else {
+                            const navigation =
+                              NavigationUtils.fromRightIconNavigation(
+                                iconItem.id
+                              );
+                            handleNavigationChange(navigation);
+                          }
+                        }}
+                        style={{ anchorName: `--icon-${iconItem.id}` }}
+                        className={`p-2 rounded-md transition-all duration-200 ease-in-out transform ${
+                          iconItem.active
+                            ? 'text-[#4a433c] bg-gray-300 shadow-md ring-1 ring-[#e6e2dc] scale-110'
+                            : 'text-[#b8b1a9] hover:text-[#635a52] hover:bg-[#f8f7f5] hover:scale-105'
+                        }`}
+                      >
+                        <IconComponent className="w-5 h-5" />
+                      </button>
 
-                {/* 实际的下拉菜单 */}
-                <div className="rounded-lg bg-white shadow-lg ring-1 ring-gray-200">
-                  <div className="py-1">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Reset Layout clicked in avatar dropdown');
-                        if (onResetLayout) {
-                          onResetLayout();
-                        } else {
-                          console.warn('onResetLayout function not available');
-                        }
-                      }}
-                      className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <RotateCcw className="mr-3 h-4 w-4 text-gray-400" />
-                      Reset Layout
-                    </button>
+                      {/* Notification badge only for notifications icon */}
+                      {isNotifications && (
+                        <Badge
+                          type="pill-color"
+                          color="error"
+                          size="sm"
+                          className="absolute -top-1 -right-1 w-2 h-2 p-0 min-w-0"
+                        >
+                          <span className="sr-only">New notifications</span>
+                        </Badge>
+                      )}
 
-                    <div className="border-t border-gray-200 my-1"></div>
+                      {/* Hover Dropdown for right-side icons with sub-menus */}
+                      {iconItem.hasSubMenu &&
+                        iconItem.subItems &&
+                        iconItem.subItems.length > 0 && (
+                          <div className="absolute top-full right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
+                            {/* Invisible bridge area */}
+                            <div className="h-2 w-full" />
 
-                    <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                      <PanelTop className="mr-3 h-4 w-4 text-gray-400" />
-                      Horizontal Navigation
-                    </button>
-                    <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                      <PanelTopOpen className="mr-3 h-4 w-4 text-gray-400" />
-                      Hover-activated Navigation
-                    </button>
-                    <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                      <PanelLeft className="mr-3 h-4 w-4 text-gray-400" />
-                      Sidebar Navigation
-                    </button>
+                            {/* Actual dropdown menu */}
+                            <div className="bg-white rounded-lg shadow-lg ring-1 ring-gray-200 py-1 min-w-[200px]">
+                              {iconItem.subItems.map((subItem) => (
+                                <button
+                                  key={subItem.name}
+                                  onClick={() => {
+                                    if (iconItem.id === 'more') {
+                                      // More button dropdown items are main navigation items
+                                      const navigation =
+                                        NavigationUtils.fromMainNavigation(
+                                          subItem.name,
+                                          undefined,
+                                          undefined,
+                                          'more'
+                                        );
+                                      handleNavigationChange(navigation);
+                                    } else {
+                                      // Other right-side icons use sub-navigation
+                                      const navigation =
+                                        NavigationUtils.fromRightIconNavigation(
+                                          iconItem.id,
+                                          subItem.name
+                                        );
+                                      handleNavigationChange(navigation);
+                                    }
+                                  }}
+                                  className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                                    subItem.active
+                                      ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                                      : 'text-gray-700 hover:bg-gray-100'
+                                  }`}
+                                >
+                                  <span className="flex items-center">
+                                    {subItem.name}
+                                    {subItem.isExternal && (
+                                      <svg
+                                        className="w-3 h-3 ml-1"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                        />
+                                      </svg>
+                                    )}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* User Avatar with CSS Hover Dropdown Menu (same as horizontal mode) */}
+              <div className="group relative">
+                <Avatar
+                  size="md"
+                  src={userAvatarUrl}
+                  alt={userName}
+                  initials={userName.charAt(0)}
+                  className="cursor-pointer"
+                />
+
+                <div className="absolute right-0 top-full w-62 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
+                  {/* 不可见的桥接区域 - 扩大hover响应范围，向上覆盖部分导航区域 */}
+                  <div className="h-6 w-full -mt-4" />
+
+                  {/* 实际的下拉菜单 */}
+                  <div className="rounded-lg bg-white shadow-lg ring-1 ring-gray-200">
+                    <div className="py-1">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log(
+                            'Reset Layout clicked in avatar dropdown'
+                          );
+                          if (onResetLayout) {
+                            onResetLayout();
+                          } else {
+                            console.warn(
+                              'onResetLayout function not available'
+                            );
+                          }
+                        }}
+                        className="dropdown-item-animate flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <RotateCcw className="mr-3 h-4 w-4 text-gray-400" />
+                        Reset Layout
+                      </button>
+
+                      <div className="border-t border-gray-200 my-1"></div>
+
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onNavigationModeChange) {
+                            onNavigationModeChange('horizontal');
+                          }
+                        }}
+                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                          navigationMode === 'horizontal'
+                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <PanelTop className="mr-3 h-4 w-4 text-gray-400" />
+                        Horizontal Navigation
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onNavigationModeChange) {
+                            onNavigationModeChange('hover');
+                          }
+                        }}
+                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                          navigationMode === 'hover'
+                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <PanelTopOpen className="mr-3 h-4 w-4 text-gray-400" />
+                        Hover-activated Navigation
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onNavigationModeChange) {
+                            onNavigationModeChange('sidebar');
+                          }
+                        }}
+                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                          navigationMode === 'sidebar'
+                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <PanelLeft className="mr-3 h-4 w-4 text-gray-400" />
+                        Sidebar Navigation
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Sub Navigation - for main navigation */}
-      {hasSubNav && (
-        <div className="bg-gray-300">
-          <div className={navContainerClassName} style={containerStyle}>
-            <div className="h-11 flex items-center">
-              <nav
-                className="absolute flex items-center gap-0.5"
-                style={{
-                  positionAnchor: `--nav-${activeMainNav?.toLowerCase().replace(/\s+/g, '-')}`,
-                  justifySelf: 'anchor-center',
-                }}
-              >
-                {activeNavItem?.subItems?.map((subItem) => (
-                  <div key={subItem.name} className="relative">
-                    <button
-                      onClick={() =>
-                        onNavChange?.(
-                          activeMainNav,
-                          subItem.name,
-                          subItem.subItems ? '' : undefined
-                        )
-                      }
-                      style={{
-                        anchorName: `--sub-nav-${subItem.name.toLowerCase().replace(/\s+/g, '-')}`,
-                      }}
-                      className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-colors ${
-                        subItem.active
-                          ? 'text-[#4a433c]'
-                          : 'text-[#635a52] hover:text-[#4a433c]'
-                      } ${subItem.isExternal ? 'flex items-center gap-1' : ''}`}
-                    >
-                      {subItem.name}
-                      {subItem.isExternal && (
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                    {subItem.active && (
-                      <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-600 rounded-full" />
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNavigation />
+      </>
+    );
+  };
+
+  // Horizontal Navigation Layout Component (existing navigation)
+  const HorizontalNavigationLayout = () => {
+    return (
+      <>
+        {/* Main Navigation */}
+        <div className={navContainerClassName} style={containerStyle}>
+          <div className="flex h-[72px] items-center justify-between px-6 py-0">
+            {/* Left side - Logo and Navigation */}
+            <div className="flex items-center gap-6">
+              {/* Logo */}
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-brand rounded flex items-center justify-center">
+                  <span className="text-brand-foreground font-bold text-sm">
+                    CC
+                  </span>
+                </div>
+                <span className="ml-2 text-lg font-semibold text-gray-900">
+                  ChubbyCapital
+                </span>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex items-center gap-0.5 whitespace-nowrap">
+                {/* Primary navigation items (first 6 only) */}
+                {primaryNavItems.map((item) => (
+                  <button
+                    key={item.name}
+                    onClick={() => {
+                      const navigation = NavigationUtils.fromMainNavigation(
+                        item.name
+                      );
+                      handleNavigationChange(navigation);
+                    }}
+                    style={{
+                      anchorName: `--nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`,
+                    }}
+                    className={`px-3 py-2 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-all duration-200 ease-in-out transform ${
+                      item.active
+                        ? 'bg-gray-300 text-[#4a433c] shadow-md ring-1 ring-[#e6e2dc] scale-105'
+                        : 'text-[#635a52] hover:text-[#4a433c] hover:bg-[#f8f7f5] hover:scale-102'
+                    } ${item.isExternal ? 'flex items-center gap-1' : ''}`}
+                  >
+                    {item.name}
+                    {item.isExternal && (
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
                     )}
-                  </div>
+                  </button>
                 ))}
               </nav>
+            </div>
+
+            {/* Right side - Actions and User */}
+            <div className="flex items-center gap-3">
+              {/* Right Side Icons */}
+              <div className="flex gap-0.5">
+                {rightSideIcons.map((iconItem) => {
+                  const IconComponent = iconItem.icon;
+                  const isNotifications = iconItem.id === 'notifications';
+
+                  return (
+                    <div key={iconItem.id} className="group relative">
+                      <button
+                        onClick={() => {
+                          if (
+                            iconItem.id === 'more' &&
+                            moreNavItems.length > 0
+                          ) {
+                            // For "More" icon, treat as main navigation and activate first sub-item
+                            const navigation =
+                              NavigationUtils.fromMainNavigation(
+                                'More',
+                                moreNavItems[0].name,
+                                undefined,
+                                'more'
+                              );
+                            handleNavigationChange(navigation);
+                          } else {
+                            const navigation =
+                              NavigationUtils.fromRightIconNavigation(
+                                iconItem.id
+                              );
+                            handleNavigationChange(navigation);
+                          }
+                        }}
+                        style={{ anchorName: `--icon-${iconItem.id}` }}
+                        className={`p-2 rounded-md transition-all duration-200 ease-in-out transform ${
+                          iconItem.active
+                            ? 'text-[#4a433c] bg-gray-300 shadow-md ring-1 ring-[#e6e2dc] scale-110'
+                            : 'text-[#b8b1a9] hover:text-[#635a52] hover:bg-[#f8f7f5] hover:scale-105'
+                        }`}
+                      >
+                        <IconComponent className="w-5 h-5" />
+                      </button>
+
+                      {/* Notification badge only for notifications icon */}
+                      {isNotifications && (
+                        <Badge
+                          type="pill-color"
+                          color="error"
+                          size="sm"
+                          className="absolute -top-1 -right-1 w-2 h-2 p-0 min-w-0"
+                        >
+                          <span className="sr-only">New notifications</span>
+                        </Badge>
+                      )}
+
+                      {/* No dropdowns in horizontal mode - right-side icons only use horizontal sub-navigation bars */}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* User Avatar with CSS Hover Dropdown Menu */}
+              <div className="group relative">
+                <Avatar
+                  size="md"
+                  src={userAvatarUrl}
+                  alt={userName}
+                  initials={userName.charAt(0)}
+                  className="cursor-pointer"
+                />
+
+                <div className="absolute right-0 top-full w-62 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
+                  {/* 不可见的桥接区域 - 扩大hover响应范围，向上覆盖部分导航区域 */}
+                  <div className="h-6 w-full -mt-4" />
+
+                  {/* 实际的下拉菜单 */}
+                  <div className="rounded-lg bg-white shadow-lg ring-1 ring-gray-200">
+                    <div className="py-1">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log(
+                            'Reset Layout clicked in avatar dropdown'
+                          );
+                          if (onResetLayout) {
+                            onResetLayout();
+                          } else {
+                            console.warn(
+                              'onResetLayout function not available'
+                            );
+                          }
+                        }}
+                        className="dropdown-item-animate flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <RotateCcw className="mr-3 h-4 w-4 text-gray-400" />
+                        Reset Layout
+                      </button>
+
+                      <div className="border-t border-gray-200 my-1"></div>
+
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onNavigationModeChange) {
+                            onNavigationModeChange('horizontal');
+                          }
+                        }}
+                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                          navigationMode === 'horizontal'
+                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <PanelTop className="mr-3 h-4 w-4 text-gray-400" />
+                        Horizontal Navigation
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onNavigationModeChange) {
+                            onNavigationModeChange('hover');
+                          }
+                        }}
+                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                          navigationMode === 'hover'
+                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <PanelTopOpen className="mr-3 h-4 w-4 text-gray-400" />
+                        Hover-activated Navigation
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onNavigationModeChange) {
+                            onNavigationModeChange('sidebar');
+                          }
+                        }}
+                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                          navigationMode === 'sidebar'
+                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <PanelLeft className="mr-3 h-4 w-4 text-gray-400" />
+                        Sidebar Navigation
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Third Level Navigation - for sub items with children (like Models under Planning) */}
-      {hasThirdNav && (
-        <div className="bg-gray-100">
-          <div className={navContainerClassName} style={containerStyle}>
-            <div className="h-11 flex items-center justify-end px-6 border-b border-gray-300">
-              <nav className="flex items-center gap-0.5">
-                {activeSubItem?.subItems?.map((thirdItem) => (
-                  <div key={thirdItem.name} className="relative">
-                    <button
-                      onClick={() =>
-                        onNavChange?.(
-                          activeMainNav,
-                          activeSubNav,
-                          thirdItem.name
-                        )
-                      }
-                      style={{
-                        anchorName: `--third-nav-${thirdItem.name.toLowerCase().replace(/\s+/g, '-')}`,
-                      }}
-                      className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-colors ${
-                        thirdItem.active
-                          ? 'text-[#4a433c]'
-                          : 'text-[#635a52] hover:text-[#4a433c]'
-                      } ${thirdItem.isExternal ? 'flex items-center gap-1' : ''}`}
-                    >
-                      {thirdItem.name}
-                      {thirdItem.isExternal && (
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                    {thirdItem.active && (
-                      <div className="absolute bottom-0 left-2 right-2 h-1 bg-blue-500 rounded-full" />
-                    )}
-                  </div>
-                ))}
-              </nav>
+        {/* Sub Navigation - for main navigation (including More) */}
+        {(hasSubNav || activeMainNav === 'More') && (
+          <div className="bg-gray-300">
+            <div className={navContainerClassName} style={containerStyle}>
+              <div className="h-11 flex items-center">
+                <nav
+                  className="absolute flex items-center gap-0.5"
+                  style={{
+                    positionAnchor:
+                      activeMainNav === 'More'
+                        ? '--icon-more' // Use the More icon's anchor position
+                        : `--nav-${activeMainNav?.toLowerCase().replace(/\s+/g, '-')}`,
+                    justifySelf: 'anchor-center',
+                  }}
+                >
+                  {/* Show sub-navigation items */}
+                  {activeMainNav === 'More'
+                    ? moreNavItems.map((item) => (
+                        <div key={item.name} className="relative">
+                          <button
+                            onClick={() => {
+                              const navigation =
+                                NavigationUtils.fromMainNavigation(
+                                  'More',
+                                  item.name,
+                                  item.subItems ? '' : undefined,
+                                  'more'
+                                );
+                              handleNavigationChange(navigation);
+                            }}
+                            style={{
+                              anchorName: `--sub-nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`,
+                            }}
+                            className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-all duration-150 ease-in-out transform ${
+                              activeSubNav === item.name
+                                ? 'text-[#4a433c] scale-105'
+                                : 'text-[#635a52] hover:text-[#4a433c] hover:scale-102'
+                            } ${item.isExternal ? 'flex items-center gap-1' : ''}`}
+                          >
+                            {item.name}
+                            {item.isExternal && (
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                          {activeSubNav === item.name && (
+                            <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-600 rounded-full" />
+                          )}
+                        </div>
+                      ))
+                    : activeNavItem?.subItems?.map((subItem) => (
+                        <div key={subItem.name} className="relative">
+                          <button
+                            onClick={() => {
+                              const navigation =
+                                NavigationUtils.fromMainNavigation(
+                                  activeMainNav,
+                                  subItem.name,
+                                  subItem.subItems ? '' : undefined
+                                );
+                              handleNavigationChange(navigation);
+                            }}
+                            style={{
+                              anchorName: `--sub-nav-${subItem.name.toLowerCase().replace(/\s+/g, '-')}`,
+                            }}
+                            className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-all duration-150 ease-in-out transform ${
+                              subItem.active
+                                ? 'text-[#4a433c] scale-105'
+                                : 'text-[#635a52] hover:text-[#4a433c] hover:scale-102'
+                            } ${subItem.isExternal ? 'flex items-center gap-1' : ''}`}
+                          >
+                            {subItem.name}
+                            {subItem.isExternal && (
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                          {subItem.active && (
+                            <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-600 rounded-full" />
+                          )}
+                        </div>
+                      ))}
+                </nav>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Sub Navigation - for right side icons */}
-      {hasRightSubNav && (
-        <div className="bg-gray-300">
-          <div className={navContainerClassName} style={containerStyle}>
-            <div className="h-11 px-6 flex items-center justify-end">
-              <nav className="flex items-center gap-0.5">
-                {activeRightIconItem?.subItems?.map((subItem) => (
-                  <div key={subItem.name} className="relative">
-                    <button
-                      onClick={() =>
-                        onRightIconChange?.(activeRightIcon, subItem.name)
-                      }
-                      className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-colors ${
-                        subItem.active
-                          ? 'text-[#4a433c]'
-                          : 'text-[#635a52] hover:text-[#4a433c]'
-                      } ${subItem.isExternal ? 'flex items-center gap-1' : ''}`}
-                    >
-                      {subItem.name}
-                      {subItem.isExternal && (
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                          />
-                        </svg>
+        {/* Third Level Navigation - for sub items with children (like Models under Planning) */}
+        {hasThirdNav && (
+          <div className="bg-gray-100">
+            <div className={navContainerClassName} style={containerStyle}>
+              <div className="h-11 flex items-center justify-end px-6 border-b border-gray-300">
+                <nav className="flex items-center gap-0.5">
+                  {activeSubItem?.subItems?.map((thirdItem) => (
+                    <div key={thirdItem.name} className="relative">
+                      <button
+                        onClick={() => {
+                          const navigation = NavigationUtils.fromMainNavigation(
+                            activeMainNav,
+                            activeSubNav,
+                            thirdItem.name
+                          );
+                          handleNavigationChange(navigation);
+                        }}
+                        style={{
+                          anchorName: `--third-nav-${thirdItem.name.toLowerCase().replace(/\s+/g, '-')}`,
+                        }}
+                        className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-all duration-150 ease-in-out transform ${
+                          thirdItem.active
+                            ? 'text-[#4a433c] scale-105'
+                            : 'text-[#635a52] hover:text-[#4a433c] hover:scale-102'
+                        } ${thirdItem.isExternal ? 'flex items-center gap-1' : ''}`}
+                      >
+                        {thirdItem.name}
+                        {thirdItem.isExternal && (
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                      {thirdItem.active && (
+                        <div className="absolute bottom-0 left-2 right-2 h-1 bg-blue-500 rounded-full" />
                       )}
-                    </button>
-                    {subItem.active && (
-                      <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-600 rounded-full" />
-                    )}
-                  </div>
-                ))}
-              </nav>
+                    </div>
+                  ))}
+                </nav>
+              </div>
             </div>
           </div>
+        )}
+
+        {/* Sub Navigation - for right side icons */}
+        {hasRightSubNav && (
+          <div className="bg-gray-300">
+            <div className={navContainerClassName} style={containerStyle}>
+              <div className="h-11 px-6 flex items-center justify-end">
+                <nav className="flex items-center gap-0.5">
+                  {activeRightIconItem?.subItems?.map((subItem) => (
+                    <div key={subItem.name} className="relative">
+                      <button
+                        onClick={() => {
+                          const navigation =
+                            NavigationUtils.fromRightIconNavigation(
+                              activeRightIcon,
+                              subItem.name
+                            );
+                          handleNavigationChange(navigation);
+                        }}
+                        className={`px-3 py-1 rounded-md text-base font-['Roobert_RC:Semibold',_sans-serif] transition-all duration-150 ease-in-out transform ${
+                          subItem.active
+                            ? 'text-[#4a433c] scale-105'
+                            : 'text-[#635a52] hover:text-[#4a433c] hover:scale-102'
+                        } ${subItem.isExternal ? 'flex items-center gap-1' : ''}`}
+                      >
+                        {subItem.name}
+                        {subItem.isExternal && (
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                      {subItem.active && (
+                        <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-gray-600 rounded-full" />
+                      )}
+                    </div>
+                  ))}
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
+  return (
+    <div className="bg-white">
+      {navigationMode === 'horizontal' && <HorizontalNavigationLayout />}
+      {navigationMode === 'hover' && <HoverNavigationLayout />}
+      {navigationMode === 'sidebar' && (
+        <div className="text-center py-8 text-gray-500">
+          Sidebar Navigation - Coming Soon
         </div>
       )}
     </div>
