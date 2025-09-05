@@ -1,6 +1,16 @@
 import { Avatar } from '@untitled-ui/components/base/avatar/avatar';
 import { Badge } from '@untitled-ui/components/base/badges/badges';
-import { Bell, Folder, Key, MoreHorizontal, Settings } from 'lucide-react';
+import {
+  Bell,
+  Folder,
+  Key,
+  MoreHorizontal,
+  PanelLeft,
+  PanelTop,
+  PanelTopOpen,
+  RotateCcw,
+  Settings,
+} from 'lucide-react';
 
 interface NavItem {
   name: string;
@@ -43,6 +53,7 @@ interface HeaderProps {
   activeRightIcon?: string;
   activeRightSubNav?: string;
   onRightIconChange?: (iconId: string, subNav?: string) => void;
+  onResetLayout?: () => void;
   containerClassName?: string;
   containerStyle?: React.CSSProperties;
 }
@@ -59,6 +70,7 @@ export const Header = ({
   activeRightIcon = '',
   activeRightSubNav = '',
   onRightIconChange,
+  onResetLayout,
   containerClassName = 'max-w-7xl mx-auto',
   containerStyle = {},
 }: HeaderProps) => {
@@ -329,13 +341,58 @@ export const Header = ({
               })}
             </div>
 
-            {/* User Avatar */}
-            <Avatar
-              size="md"
-              src={userAvatarUrl}
-              alt={userName}
-              initials={userName.charAt(0)}
-            />
+            {/* User Avatar with CSS Hover Dropdown Menu */}
+            <div className="group relative">
+              <Avatar
+                size="md"
+                src={userAvatarUrl}
+                alt={userName}
+                initials={userName.charAt(0)}
+                className="cursor-pointer"
+              />
+
+              <div className="absolute right-0 top-full w-62 hidden group-hover:block z-50">
+                {/* 不可见的桥接区域 - 扩大hover响应范围，向上覆盖部分导航区域 */}
+                <div className="h-6 w-full -mt-4" />
+
+                {/* 实际的下拉菜单 */}
+                <div className="rounded-lg bg-white shadow-lg ring-1 ring-gray-200">
+                  <div className="py-1">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Reset Layout clicked in avatar dropdown');
+                        if (onResetLayout) {
+                          onResetLayout();
+                        } else {
+                          console.warn('onResetLayout function not available');
+                        }
+                      }}
+                      className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <RotateCcw className="mr-3 h-4 w-4 text-gray-400" />
+                      Reset Layout
+                    </button>
+
+                    <div className="border-t border-gray-200 my-1"></div>
+
+                    <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                      <PanelTop className="mr-3 h-4 w-4 text-gray-400" />
+                      Horizontal Navigation
+                    </button>
+                    <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                      <PanelTopOpen className="mr-3 h-4 w-4 text-gray-400" />
+                      Hover-activated Navigation
+                    </button>
+                    <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                      <PanelLeft className="mr-3 h-4 w-4 text-gray-400" />
+                      Sidebar Navigation
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -148,25 +148,57 @@ function App() {
 
   // 重置布局
   const resetLayout = useCallback(() => {
+    console.log('🔄 resetLayout function called');
+    console.log('📦 Before clear localStorage:', {
+      topLayouts: localStorage.getItem(STORAGE_KEYS.TOP_LAYOUTS),
+      sideLayouts: localStorage.getItem(STORAGE_KEYS.SIDE_LAYOUTS),
+      activitiesColumns: localStorage.getItem(STORAGE_KEYS.ACTIVITIES_COLUMNS),
+    });
+
     // 清除本地存储
     localStorage.removeItem(STORAGE_KEYS.TOP_LAYOUTS);
     localStorage.removeItem(STORAGE_KEYS.SIDE_LAYOUTS);
     localStorage.removeItem(STORAGE_KEYS.ACTIVITIES_COLUMNS);
 
-    // 重置两个面板的布局
+    console.log('🗑️ After clear localStorage:', {
+      topLayouts: localStorage.getItem(STORAGE_KEYS.TOP_LAYOUTS),
+      sideLayouts: localStorage.getItem(STORAGE_KEYS.SIDE_LAYOUTS),
+      activitiesColumns: localStorage.getItem(STORAGE_KEYS.ACTIVITIES_COLUMNS),
+    });
+
+    // 重置各种布局组件
     const windowWithReset = window as Window & {
-      __resetTopPaneLayout?: () => void;
+      __resetLayouts?: { [key: string]: () => void };
       __resetWorkspaceLayout?: () => void;
     };
 
-    if (windowWithReset.__resetTopPaneLayout) {
-      windowWithReset.__resetTopPaneLayout();
-    }
-    if (windowWithReset.__resetWorkspaceLayout) {
-      windowWithReset.__resetWorkspaceLayout();
+    console.log('🪟 Window reset callbacks availability:', {
+      resetLayouts: typeof windowWithReset.__resetLayouts,
+      resetWorkspace: typeof windowWithReset.__resetWorkspaceLayout,
+    });
+
+    // 重置 GridLayout (用于 MetricsBar)
+    if (windowWithReset.__resetLayouts) {
+      const topLayoutsKey = STORAGE_KEYS.TOP_LAYOUTS;
+      if (windowWithReset.__resetLayouts[topLayoutsKey]) {
+        console.log('📊 Calling __resetLayouts for', topLayoutsKey);
+        windowWithReset.__resetLayouts[topLayoutsKey]();
+      } else {
+        console.warn('⚠️ __resetLayouts not available for', topLayoutsKey);
+      }
+    } else {
+      console.warn('⚠️ __resetLayouts not available');
     }
 
-    console.log('Layout reset to default');
+    // 重置 WorkspaceLayout
+    if (windowWithReset.__resetWorkspaceLayout) {
+      console.log('🏢 Calling __resetWorkspaceLayout');
+      windowWithReset.__resetWorkspaceLayout();
+    } else {
+      console.warn('⚠️ __resetWorkspaceLayout not available');
+    }
+
+    console.log('✅ Layout reset completed');
   }, []);
 
   // 拖拽事件处理
@@ -225,16 +257,13 @@ function App() {
           activeRightIcon={activeRightIcon}
           activeRightSubNav={activeRightSubNav}
           onRightIconChange={handleRightIconChange}
+          onResetLayout={resetLayout}
           containerClassName="max-w-7xl mx-auto"
         />
       </div>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        <WelcomeSection
-          onResetLayout={resetLayout}
-          isDragging={isDragging}
-          isResizing={isResizing}
-        />
+        <WelcomeSection isDragging={isDragging} isResizing={isResizing} />
 
         {/* 顶部指标栏 */}
         <div className="mb-6">
