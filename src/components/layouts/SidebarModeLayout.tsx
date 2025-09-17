@@ -117,7 +117,7 @@ export const SidebarModeLayout: React.FC<SidebarModeLayoutProps> = ({
     <div className="flex min-h-[calc(100vh-72px)] min-w-[1280px] relative">
       {/* Sidebar container - can shrink but content overflows */}
       <div
-        className={`flex-shrink min-w-0 overflow-visible relative z-10 transition-all duration-300 ease-in-out ${
+        className={`flex-shrink min-w-0 overflow-visible relative z-30 transition-all duration-300 ease-in-out ${
           isOverlayMode
             ? 'max-w-0'
             : isSidebarVisible
