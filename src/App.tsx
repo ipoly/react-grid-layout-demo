@@ -178,6 +178,28 @@ function App() {
     }
   }, []);
 
+  // 更新 document title 显示窗口尺寸
+  useEffect(() => {
+    const updateTitle = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      document.title = `${width} × ${height} - React Grid Layout Demo`;
+    };
+
+    // 初始设置
+    updateTitle();
+
+    // 监听窗口大小变化
+    window.addEventListener('resize', updateTitle);
+
+    // 清理函数
+    return () => {
+      window.removeEventListener('resize', updateTitle);
+      // 恢复原始标题
+      document.title = 'React Grid Layout Demo';
+    };
+  }, []);
+
   // 重置布局
   const resetLayout = useCallback(() => {
     console.log('🔄 resetLayout function called');
@@ -340,14 +362,12 @@ function App() {
     return (
       <SidebarLayoutWrapper>
         <div className="min-h-screen bg-gray-100">
-          {/* Layout Controls Panel - 仅在开发环境显示 */}
-          {process.env.NODE_ENV === 'development' && (
-            <LayoutControls
-              navigationMode={navigationMode}
-              onNavigationModeChange={handleNavigationModeChange}
-              onResetLayout={resetLayout}
-            />
-          )}
+          {/* Layout Controls Panel */}
+          <LayoutControls
+            navigationMode={navigationMode}
+            onNavigationModeChange={handleNavigationModeChange}
+            onResetLayout={resetLayout}
+          />
           {/* Sticky Header */}
           <div className="sticky top-0 z-50">
             <Header
@@ -382,14 +402,12 @@ function App() {
   // For horizontal and hover modes, use traditional header layout
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Layout Controls Panel - 仅在开发环境显示 */}
-      {process.env.NODE_ENV === 'development' && (
-        <LayoutControls
-          navigationMode={navigationMode}
-          onNavigationModeChange={handleNavigationModeChange}
-          onResetLayout={resetLayout}
-        />
-      )}
+      {/* Layout Controls Panel */}
+      <LayoutControls
+        navigationMode={navigationMode}
+        onNavigationModeChange={handleNavigationModeChange}
+        onResetLayout={resetLayout}
+      />
 
       <div className="sticky top-0 z-50">
         <Header
