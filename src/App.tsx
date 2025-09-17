@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { WorkspaceLayout } from './components/WorkspaceLayout';
-import { Header } from './components/business/Header';
+import { Header, getNavigationItems } from './components/business/Header';
 import { WelcomeSection } from './components/business/WelcomeSection';
 import { AssetsMetric } from './components/business/metrics/AssetsMetric';
 import { ClientsMetric } from './components/business/metrics/ClientsMetric';
@@ -9,6 +9,8 @@ import { PlansMetric } from './components/business/metrics/PlansMetric';
 import { TasksMetric } from './components/business/metrics/TasksMetric';
 import { MetricsBar } from './components/layouts/MetricsBar';
 import type { MetricConfig } from './components/layouts/MetricsBar';
+import { SidebarLayoutWrapper } from './components/layouts/SidebarLayoutWrapper';
+import { SidebarModeLayout } from './components/layouts/SidebarModeLayout';
 import { STORAGE_KEYS, cleanupOldVersions } from './config/storage';
 import type { NavigationState } from './types/navigation';
 import { NavigationUtils } from './types/navigation';
@@ -124,6 +126,7 @@ function App() {
   const handleNavigationModeChange = useCallback(
     (mode: 'horizontal' | 'hover' | 'sidebar') => {
       setNavigationMode(mode);
+      localStorage.setItem(STORAGE_KEYS.NAVIGATION_MODE, mode);
       console.log('Navigation mode changed to:', mode);
     },
     []
@@ -157,9 +160,20 @@ function App() {
     // 清理旧版本的 localStorage 数据
     cleanupOldVersions();
 
-    const saved = localStorage.getItem(STORAGE_KEYS.BREAKPOINT_PRESET);
-    if (saved) {
-      setCurrentPreset(saved);
+    const savedPreset = localStorage.getItem(STORAGE_KEYS.BREAKPOINT_PRESET);
+    if (savedPreset) {
+      setCurrentPreset(savedPreset);
+    }
+
+    const savedNavigationMode = localStorage.getItem(
+      STORAGE_KEYS.NAVIGATION_MODE
+    );
+    if (
+      savedNavigationMode === 'horizontal' ||
+      savedNavigationMode === 'hover' ||
+      savedNavigationMode === 'sidebar'
+    ) {
+      setNavigationMode(savedNavigationMode);
     }
   }, []);
 
@@ -170,17 +184,23 @@ function App() {
       topLayouts: localStorage.getItem(STORAGE_KEYS.TOP_LAYOUTS),
       sideLayouts: localStorage.getItem(STORAGE_KEYS.SIDE_LAYOUTS),
       activitiesColumns: localStorage.getItem(STORAGE_KEYS.ACTIVITIES_COLUMNS),
+      navigationMode: localStorage.getItem(STORAGE_KEYS.NAVIGATION_MODE),
     });
 
     // 清除本地存储
     localStorage.removeItem(STORAGE_KEYS.TOP_LAYOUTS);
     localStorage.removeItem(STORAGE_KEYS.SIDE_LAYOUTS);
     localStorage.removeItem(STORAGE_KEYS.ACTIVITIES_COLUMNS);
+    localStorage.removeItem(STORAGE_KEYS.NAVIGATION_MODE);
+
+    // 重置导航模式到默认值
+    setNavigationMode('horizontal');
 
     console.log('🗑️ After clear localStorage:', {
       topLayouts: localStorage.getItem(STORAGE_KEYS.TOP_LAYOUTS),
       sideLayouts: localStorage.getItem(STORAGE_KEYS.SIDE_LAYOUTS),
       activitiesColumns: localStorage.getItem(STORAGE_KEYS.ACTIVITIES_COLUMNS),
+      navigationMode: localStorage.getItem(STORAGE_KEYS.NAVIGATION_MODE),
     });
 
     // 重置各种布局组件
@@ -261,26 +281,10 @@ function App() {
     []
   );
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="sticky top-0 z-50">
-        <Header
-          currentBreakpointPreset={currentPreset}
-          onBreakpointPresetChange={handleBreakpointPresetChange}
-          activeMainNav={activeMainNav}
-          activeSubNav={activeSubNav}
-          activeThirdNav={activeThirdNav}
-          activeRightIcon={activeRightIcon}
-          activeRightSubNav={activeRightSubNav}
-          onNavigationChange={handleNavigationChange}
-          onResetLayout={resetLayout}
-          navigationMode={navigationMode}
-          onNavigationModeChange={handleNavigationModeChange}
-          containerClassName="max-w-[1680px] min-w-[1280px] mx-auto"
-        />
-      </div>
-
-      <main className="max-w-[1680px] min-w-[1280px] mx-auto px-6 py-8">
+  // Main content component that both layouts will use - memoized to prevent unnecessary re-renders
+  const MainContent = useMemo(
+    () => (
+      <main className="flex-1 max-w-[1680px] min-w-[1280px] w-full mx-auto px-6 py-8">
         <WelcomeSection isDragging={isDragging} isResizing={isResizing} />
 
         {/* 顶部指标栏 */}
@@ -317,6 +321,89 @@ function App() {
           onResizeStop={handleResizeStop}
         />
       </main>
+    ),
+    [
+      isDragging,
+      isResizing,
+      metricsConfig,
+      breakpoints,
+      handleDragStart,
+      handleDragStop,
+      handleResizeStart,
+      handleResizeStop,
+    ]
+  );
+
+  // For sidebar mode, use Header + SidebarLayoutWrapper
+  if (navigationMode === 'sidebar') {
+    return (
+      <SidebarLayoutWrapper
+        navigationItems={getNavigationItems()}
+        activeMainNav={activeMainNav}
+        activeSubNav={activeSubNav}
+        activeThirdNav={activeThirdNav}
+        activeRightIcon={activeRightIcon}
+        activeRightSubNav={activeRightSubNav}
+        onNavigationChange={handleNavigationChange}
+        onResetLayout={resetLayout}
+        navigationMode={navigationMode}
+        onNavigationModeChange={handleNavigationModeChange}
+      >
+        <div className="min-h-screen bg-gray-100">
+          {/* Sticky Header */}
+          <div className="sticky top-0 z-50">
+            <Header
+              activeMainNav={activeMainNav}
+              activeSubNav={activeSubNav}
+              activeThirdNav={activeThirdNav}
+              activeRightIcon={activeRightIcon}
+              activeRightSubNav={activeRightSubNav}
+              onNavigationChange={handleNavigationChange}
+              onResetLayout={resetLayout}
+              navigationMode={navigationMode}
+              onNavigationModeChange={handleNavigationModeChange}
+              containerClassName="w-full"
+            />
+          </div>
+
+          {/* Main content with sidebar space consideration */}
+          <SidebarModeLayout
+            navigationItems={getNavigationItems()}
+            onNavigationChange={handleNavigationChange}
+            activeMainNav={activeMainNav}
+            activeSubNav={activeSubNav}
+            activeThirdNav={activeThirdNav}
+            activeRightIcon={activeRightIcon}
+            activeRightSubNav={activeRightSubNav}
+          >
+            {MainContent}
+          </SidebarModeLayout>
+        </div>
+      </SidebarLayoutWrapper>
+    );
+  }
+
+  // For horizontal and hover modes, use traditional header layout
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <div className="sticky top-0 z-50">
+        <Header
+          currentBreakpointPreset={currentPreset}
+          onBreakpointPresetChange={handleBreakpointPresetChange}
+          activeMainNav={activeMainNav}
+          activeSubNav={activeSubNav}
+          activeThirdNav={activeThirdNav}
+          activeRightIcon={activeRightIcon}
+          activeRightSubNav={activeRightSubNav}
+          onNavigationChange={handleNavigationChange}
+          onResetLayout={resetLayout}
+          navigationMode={navigationMode}
+          onNavigationModeChange={handleNavigationModeChange}
+          containerClassName="w-full"
+        />
+      </div>
+
+      {MainContent}
     </div>
   );
 }

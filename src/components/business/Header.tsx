@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
 import { Avatar } from '@untitled-ui/components/base/avatar/avatar';
 import { Badge } from '@untitled-ui/components/base/badges/badges';
@@ -11,12 +11,14 @@ import {
   Key,
   MoreHorizontal,
   PanelLeft,
+  PanelRight,
   PanelTop,
   PanelTopOpen,
   RotateCcw,
   Settings,
 } from 'lucide-react';
 
+import { SidebarLayoutContext } from '../../contexts/SidebarLayoutContext';
 import type {
   LegacyNavChangeHandler,
   LegacyRightIconChangeHandler,
@@ -24,6 +26,7 @@ import type {
   NavigationState,
 } from '../../types/navigation';
 import { NavigationUtils } from '../../types/navigation';
+import { BreadcrumbNavigation } from '../ui/BreadcrumbNavigation';
 
 type NavigationMode = 'horizontal' | 'hover' | 'sidebar';
 
@@ -344,300 +347,6 @@ export const Header = ({
       });
     }
   });
-
-  // Breadcrumb Navigation Component
-  const BreadcrumbNavigation = () => {
-    if (navigationMode !== 'hover') return null;
-
-    // Define the breadcrumb item type
-    type BreadcrumbItem = {
-      label: string;
-      level: number;
-      type: 'rightIcon' | 'mainNav';
-      iconId?: string;
-      siblings?: Array<{
-        name: string;
-        active: boolean;
-        isExternal?: boolean;
-      }>;
-      hasDropdown?: boolean;
-    };
-
-    const breadcrumbItems: BreadcrumbItem[] = [];
-
-    // Function to get siblings for a breadcrumb item
-    const getSiblings = (
-      item: BreadcrumbItem
-    ): Array<{ name: string; active: boolean; isExternal?: boolean }> => {
-      if (item.type === 'rightIcon' && item.iconId) {
-        const rightIcon = rightSideIcons.find(
-          (icon) => icon.id === item.iconId
-        );
-        if (rightIcon?.subItems) {
-          return rightIcon.subItems.map((subItem) => ({
-            name: subItem.name,
-            active: subItem.active || false,
-            isExternal: subItem.isExternal,
-          }));
-        }
-      } else if (item.type === 'mainNav') {
-        if (item.level === 1) {
-          // Level 1: Get siblings from current main nav's subItems
-          const mainNavItem =
-            activeMainNav === 'More'
-              ? moreNavItems.find((nav) => nav.name === activeSubNav)
-              : navigationItems.find((nav) => nav.name === activeMainNav);
-          if (mainNavItem?.subItems) {
-            return mainNavItem.subItems.map((subItem) => ({
-              name: subItem.name,
-              active: subItem.active || false,
-              isExternal: subItem.isExternal,
-            }));
-          }
-        } else if (item.level === 2) {
-          // Level 2: Get siblings from current sub nav's subItems
-          let parentSubItem;
-          if (activeMainNav === 'More') {
-            parentSubItem = moreNavItems.find(
-              (nav) => nav.name === activeSubNav
-            );
-          } else {
-            const mainNavItem = navigationItems.find(
-              (nav) => nav.name === activeMainNav
-            );
-            parentSubItem = mainNavItem?.subItems?.find(
-              (sub) => sub.name === activeSubNav
-            );
-          }
-          if (parentSubItem?.subItems) {
-            return parentSubItem.subItems.map((thirdItem) => ({
-              name: thirdItem.name,
-              active: thirdItem.active || false,
-              isExternal: thirdItem.isExternal,
-            }));
-          }
-        }
-      }
-      return [];
-    };
-
-    // Build breadcrumb based on either main navigation or right-side icon navigation
-    if (activeRightIcon) {
-      // When a right-side icon is active, show that navigation path
-      const rightIcon = rightSideIcons.find(
-        (icon) => icon.id === activeRightIcon
-      );
-      if (rightIcon) {
-        breadcrumbItems.push({
-          label: rightIcon.name,
-          level: 0,
-          type: 'rightIcon',
-          iconId: rightIcon.id,
-        });
-
-        if (activeRightSubNav) {
-          const subNavItem = {
-            label: activeRightSubNav,
-            level: 1,
-            type: 'rightIcon' as const,
-            iconId: rightIcon.id,
-          };
-          const siblings = getSiblings(subNavItem);
-          breadcrumbItems.push({
-            ...subNavItem,
-            siblings,
-            hasDropdown: siblings.length > 1,
-          });
-        }
-      }
-    } else if (activeMainNav) {
-      // When main navigation is active, show that navigation path
-      breadcrumbItems.push({
-        label: activeMainNav,
-        level: 0,
-        type: 'mainNav',
-      });
-
-      if (activeSubNav) {
-        const subNavItem = {
-          label: activeSubNav,
-          level: 1,
-          type: 'mainNav' as const,
-        };
-        const siblings = getSiblings(subNavItem);
-        breadcrumbItems.push({
-          ...subNavItem,
-          siblings,
-          hasDropdown: siblings.length > 1,
-        });
-      }
-
-      if (activeThirdNav) {
-        const thirdNavItem = {
-          label: activeThirdNav,
-          level: 2,
-          type: 'mainNav' as const,
-        };
-        const siblings = getSiblings(thirdNavItem);
-        breadcrumbItems.push({
-          ...thirdNavItem,
-          siblings,
-          hasDropdown: siblings.length > 1,
-        });
-      }
-    }
-
-    const handleBreadcrumbClick = (item: BreadcrumbItem) => {
-      if (item.type === 'rightIcon' && item.iconId) {
-        if (item.level === 0) {
-          const navigation = NavigationUtils.fromRightIconNavigation(
-            item.iconId
-          );
-          handleNavigationChange(navigation);
-        } else if (item.level === 1) {
-          const navigation = NavigationUtils.fromRightIconNavigation(
-            item.iconId,
-            activeRightSubNav
-          );
-          handleNavigationChange(navigation);
-        }
-      } else if (item.type === 'mainNav') {
-        if (item.level === 0) {
-          const navigation = NavigationUtils.fromMainNavigation(activeMainNav);
-          handleNavigationChange(navigation);
-        } else if (item.level === 1) {
-          const navigation = NavigationUtils.fromMainNavigation(
-            activeMainNav,
-            activeSubNav
-          );
-          handleNavigationChange(navigation);
-        } else if (item.level === 2) {
-          const navigation = NavigationUtils.fromMainNavigation(
-            activeMainNav,
-            activeSubNav,
-            activeThirdNav
-          );
-          handleNavigationChange(navigation);
-        }
-      }
-    };
-
-    const handleSiblingClick = (item: BreadcrumbItem, siblingName: string) => {
-      if (item.type === 'rightIcon' && item.iconId) {
-        if (item.level === 1) {
-          const navigation = NavigationUtils.fromRightIconNavigation(
-            item.iconId,
-            siblingName
-          );
-          handleNavigationChange(navigation);
-        }
-      } else if (item.type === 'mainNav') {
-        if (item.level === 1) {
-          // Clicking a sibling at level 1 (sub navigation)
-          const navigation = NavigationUtils.fromMainNavigation(
-            activeMainNav,
-            siblingName
-          );
-          handleNavigationChange(navigation);
-        } else if (item.level === 2) {
-          // Clicking a sibling at level 2 (third navigation)
-          const navigation = NavigationUtils.fromMainNavigation(
-            activeMainNav,
-            activeSubNav,
-            siblingName
-          );
-          handleNavigationChange(navigation);
-        }
-      }
-    };
-
-    // Don't render empty breadcrumb
-    if (breadcrumbItems.length === 0) {
-      return null;
-    }
-
-    return (
-      <div className="bg-gray-50 border-b border-gray-200">
-        <div className={navContainerClassName} style={containerStyle}>
-          <nav className="flex items-center h-10 px-6 text-sm">
-            {breadcrumbItems.map((item, index) => (
-              <React.Fragment key={index}>
-                {index > 0 && (
-                  <ChevronRight className="mx-2 h-3 w-3 text-gray-400" />
-                )}
-
-                {/* Breadcrumb item with optional dropdown */}
-                <div className={item.hasDropdown ? 'group relative' : ''}>
-                  <button
-                    onClick={() => handleBreadcrumbClick(item)}
-                    className={`flex items-center gap-1 transition-colors ${
-                      index === breadcrumbItems.length - 1
-                        ? 'text-gray-900 font-medium'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    {item.label}
-                    {item.hasDropdown && (
-                      <ChevronDown className="h-3 w-3 text-gray-400" />
-                    )}
-                  </button>
-
-                  {/* Dropdown menu for siblings */}
-                  {item.hasDropdown &&
-                    item.siblings &&
-                    item.siblings.length > 1 && (
-                      <div className="absolute top-full left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
-                        {/* Invisible bridge area */}
-                        <div className="h-2 w-full" />
-
-                        {/* Actual dropdown menu */}
-                        <div className="bg-white rounded-lg shadow-lg ring-1 ring-gray-200 py-1 min-w-[160px]">
-                          {item.siblings.map((sibling, siblingIndex) => (
-                            <button
-                              key={sibling.name}
-                              onClick={() =>
-                                handleSiblingClick(item, sibling.name)
-                              }
-                              className={`dropdown-item-animate flex w-full items-center px-3 py-2 text-sm transition-colors ${
-                                sibling.active
-                                  ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                                  : 'text-gray-700 hover:bg-gray-100'
-                              }`}
-                              style={{
-                                animationDelay: `${siblingIndex * 25}ms`,
-                              }}
-                            >
-                              <span className="flex items-center">
-                                {sibling.name}
-                                {sibling.isExternal && (
-                                  <svg
-                                    className="w-3 h-3 ml-1"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                    />
-                                  </svg>
-                                )}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                </div>
-              </React.Fragment>
-            ))}
-          </nav>
-        </div>
-      </div>
-    );
-  };
 
   // Hover Navigation Layout Component
   const HoverNavigationLayout = () => {
@@ -960,15 +669,8 @@ export const Header = ({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log(
-                            'Reset Layout clicked in avatar dropdown'
-                          );
                           if (onResetLayout) {
                             onResetLayout();
-                          } else {
-                            console.warn(
-                              'onResetLayout function not available'
-                            );
                           }
                         }}
                         className="dropdown-item-animate flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
@@ -1038,8 +740,21 @@ export const Header = ({
           </div>
         </div>
 
-        {/* Breadcrumb Navigation */}
-        <BreadcrumbNavigation />
+        {/* Breadcrumb Navigation - only show in hover mode */}
+        {navigationMode === 'hover' && (
+          <BreadcrumbNavigation
+            navigationItems={navigationItems}
+            rightSideIcons={rightSideIcons}
+            activeMainNav={activeMainNav}
+            activeSubNav={activeSubNav}
+            activeThirdNav={activeThirdNav}
+            activeRightIcon={activeRightIcon}
+            activeRightSubNav={activeRightSubNav}
+            onNavigationChange={handleNavigationChange}
+            containerClassName={navContainerClassName}
+            containerStyle={containerStyle}
+          />
+        )}
       </>
     );
   };
@@ -1189,15 +904,8 @@ export const Header = ({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log(
-                            'Reset Layout clicked in avatar dropdown'
-                          );
                           if (onResetLayout) {
                             onResetLayout();
-                          } else {
-                            console.warn(
-                              'onResetLayout function not available'
-                            );
                           }
                         }}
                         className="dropdown-item-animate flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
@@ -1379,9 +1087,9 @@ export const Header = ({
 
         {/* Third Level Navigation - for sub items with children (like Models under Planning) */}
         {hasThirdNav && (
-          <div className="bg-gray-100">
+          <div className="bg-gray-100 ">
             <div className={navContainerClassName} style={containerStyle}>
-              <div className="h-11 flex items-center justify-end px-6 border-b border-gray-300">
+              <div className="h-11 flex items-center justify-end px-6 border-b border-gray-300 max-w-[1680px] min-w-[1280px] w-full mx-auto">
                 <nav className="flex items-center gap-0.5">
                   {activeSubItem?.subItems?.map((thirdItem) => (
                     <div key={thirdItem.name} className="relative">
@@ -1485,15 +1193,322 @@ export const Header = ({
     );
   };
 
+  // Always call useContext at the top level, not conditionally
+  const sidebarContext = useContext(SidebarLayoutContext);
+
+  // For sidebar mode, render simplified header with logo, breadcrumb and right icons
+  if (navigationMode === 'sidebar') {
+    return (
+      <div className="bg-white border-b border-gray-200">
+        <div className={containerClassName} style={containerStyle}>
+          <div className="flex h-[72px] items-center justify-between px-6 py-0">
+            {/* Left side - Logo and Sidebar Toggle */}
+            <div className="flex items-center gap-3">
+              {/* Logo */}
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-brand rounded flex items-center justify-center">
+                  <span className="text-brand-foreground font-bold text-sm">
+                    CC
+                  </span>
+                </div>
+                <span className="ml-2 text-lg font-semibold text-gray-900">
+                  ChubbyCapital
+                </span>
+              </div>
+
+              {/* Sidebar Toggle Button */}
+              {sidebarContext?.isOverlayMode ? (
+                // Overlay mode: hover to show/hide
+                <button
+                  onMouseEnter={() => {
+                    if (sidebarContext?.openOverlay) {
+                      sidebarContext.openOverlay();
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (sidebarContext?.closeOverlay) {
+                      sidebarContext.closeOverlay();
+                    }
+                  }}
+                  className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  aria-label="Show sidebar"
+                >
+                  <PanelLeft className="w-5 h-5" />
+                </button>
+              ) : (
+                // Normal mode: click to toggle
+                <button
+                  onClick={() => {
+                    if (sidebarContext?.toggleSidebar) {
+                      sidebarContext.toggleSidebar();
+                    }
+                  }}
+                  className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  aria-label="Toggle sidebar"
+                >
+                  {sidebarContext?.isSidebarVisible ? (
+                    <PanelLeft className="w-5 h-5" />
+                  ) : (
+                    <PanelRight className="w-5 h-5" />
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* Center - Empty space in sidebar mode */}
+            <div className="flex-1"></div>
+
+            {/* Right side - Icons and User */}
+            <div className="flex items-center gap-3">
+              {/* Right Side Icons with hover dropdowns */}
+              <div className="flex gap-0.5">
+                {rightSideIcons.map((iconItem) => {
+                  const IconComponent = iconItem.icon;
+                  const isNotifications = iconItem.id === 'notifications';
+
+                  return (
+                    <div key={iconItem.id} className="group relative">
+                      <button
+                        onClick={() => {
+                          const navigation =
+                            NavigationUtils.fromRightIconNavigation(
+                              iconItem.id
+                            );
+                          handleNavigationChange(navigation);
+                        }}
+                        className={`p-2 rounded-md transition-all duration-200 ease-in-out transform ${
+                          iconItem.active
+                            ? 'text-[#4a433c] bg-gray-300 shadow-md ring-1 ring-[#e6e2dc] scale-110'
+                            : 'text-[#b8b1a9] hover:text-[#635a52] hover:bg-[#f8f7f5] hover:scale-105'
+                        }`}
+                      >
+                        <IconComponent className="w-5 h-5" />
+                      </button>
+
+                      {/* Notification badge only for notifications icon */}
+                      {isNotifications && (
+                        <Badge
+                          type="pill-color"
+                          color="error"
+                          size="sm"
+                          className="absolute -top-1 -right-1 w-2 h-2 p-0 min-w-0"
+                        >
+                          <span className="sr-only">New notifications</span>
+                        </Badge>
+                      )}
+
+                      {/* Hover Dropdown for right-side icons with sub-menus */}
+                      {iconItem.hasSubMenu &&
+                        iconItem.subItems &&
+                        iconItem.subItems.length > 0 && (
+                          <div className="absolute top-full right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
+                            {/* Invisible bridge area */}
+                            <div className="h-2 w-full" />
+
+                            {/* Actual dropdown menu */}
+                            <div className="bg-white rounded-lg shadow-lg ring-1 ring-gray-200 py-1 min-w-[200px]">
+                              {iconItem.subItems.map((subItem) => (
+                                <button
+                                  key={subItem.name}
+                                  onClick={() => {
+                                    const navigation =
+                                      NavigationUtils.fromRightIconNavigation(
+                                        iconItem.id,
+                                        subItem.name
+                                      );
+                                    handleNavigationChange(navigation);
+                                  }}
+                                  className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                                    subItem.active
+                                      ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                                      : 'text-gray-700 hover:bg-gray-100'
+                                  }`}
+                                >
+                                  <span className="flex items-center">
+                                    {subItem.name}
+                                    {subItem.isExternal && (
+                                      <svg
+                                        className="w-3 h-3 ml-1"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                        />
+                                      </svg>
+                                    )}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* User Avatar with CSS Hover Dropdown Menu */}
+              <div className="group relative">
+                <Avatar
+                  size="md"
+                  src={userAvatarUrl}
+                  alt={userName}
+                  initials={userName.charAt(0)}
+                  className="cursor-pointer"
+                />
+
+                <div className="absolute right-0 top-full w-62 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
+                  {/* Invisible bridge area */}
+                  <div className="h-6 w-full -mt-4" />
+
+                  {/* Actual dropdown menu */}
+                  <div className="rounded-lg bg-white shadow-lg ring-1 ring-gray-200">
+                    <div className="py-1">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onResetLayout) {
+                            onResetLayout();
+                          }
+                        }}
+                        className="dropdown-item-animate flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <RotateCcw className="mr-3 h-4 w-4 text-gray-400" />
+                        Reset Layout
+                      </button>
+
+                      <div className="border-t border-gray-200 my-1"></div>
+
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onNavigationModeChange) {
+                            onNavigationModeChange('horizontal');
+                          }
+                        }}
+                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                          false
+                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <PanelTop className="mr-3 h-4 w-4 text-gray-400" />
+                        Horizontal Navigation
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onNavigationModeChange) {
+                            onNavigationModeChange('hover');
+                          }
+                        }}
+                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                          false
+                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <PanelTopOpen className="mr-3 h-4 w-4 text-gray-400" />
+                        Hover-activated Navigation
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (onNavigationModeChange) {
+                            onNavigationModeChange('sidebar');
+                          }
+                        }}
+                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                          navigationMode === 'sidebar'
+                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <PanelLeft className="mr-3 h-4 w-4 text-gray-400" />
+                        Sidebar Navigation
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white">
       {navigationMode === 'horizontal' && <HorizontalNavigationLayout />}
       {navigationMode === 'hover' && <HoverNavigationLayout />}
-      {navigationMode === 'sidebar' && (
-        <div className="text-center py-8 text-gray-500">
-          Sidebar Navigation - Coming Soon
-        </div>
-      )}
     </div>
   );
 };
+
+// Export the navigation items for use in SidebarLayoutWrapper
+export const getNavigationItems = (): NavItem[] => [
+  { name: 'Dashboard' },
+  {
+    name: 'Planning',
+    subItems: [
+      { name: 'Clients' },
+      {
+        name: 'Models',
+        subItems: [
+          { name: 'Portfolios' },
+          { name: 'Glide' },
+          { name: 'Scenarios' },
+          { name: 'Vesting' },
+          { name: 'Retirement Spending' },
+          { name: 'Annuities' },
+        ],
+      },
+      { name: 'Assumptions' },
+    ],
+  },
+  {
+    name: 'ChubbyIntel',
+    subItems: [
+      { name: 'Dashboard' },
+      { name: 'Client Overview' },
+      { name: 'Opportunities' },
+    ],
+  },
+  {
+    name: 'ChubbyFlows',
+    subItems: [{ name: 'Tasks' }, { name: 'Workflows' }],
+  },
+  {
+    name: 'ChubbyPay',
+    subItems: [
+      { name: 'Plans' },
+      { name: 'Subscriptions' },
+      { name: 'Invoices' },
+      { name: 'Transactions' },
+      { name: 'Accounts' },
+    ],
+  },
+  {
+    name: 'Risk',
+    subItems: [
+      { name: 'Summary' },
+      { name: 'Questionnaires' },
+      { name: 'Categories' },
+    ],
+  },
+  { name: 'Templates' },
+  { name: 'Client Settings' },
+  { name: 'Integrations' },
+  { name: 'Admin', isExternal: true },
+  { name: 'Help', isExternal: true },
+];
