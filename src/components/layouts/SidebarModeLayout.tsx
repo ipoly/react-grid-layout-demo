@@ -138,7 +138,7 @@ export const SidebarModeLayout: React.FC<SidebarModeLayoutProps> = ({
       {/* Main content area */}
       <main className="flex-1 flex flex-col items-center">
         {/* Breadcrumb Navigation */}
-        <div className="bg-gray-50 border-b border-gray-200 w-full">
+        <div className="bg-gray-50 border-b border-gray-200 w-full sticky top-[72px] z-10">
           <BreadcrumbNavigation
             navigationItems={navigationItems}
             rightSideIcons={iconsToUse}

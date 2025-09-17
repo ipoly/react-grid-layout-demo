@@ -12,9 +12,6 @@ import {
   MoreHorizontal,
   PanelLeft,
   PanelRight,
-  PanelTop,
-  PanelTopOpen,
-  RotateCcw,
   Settings,
 } from 'lucide-react';
 
@@ -69,9 +66,7 @@ interface HeaderProps {
   activeThirdNav?: string;
   activeRightIcon?: string;
   activeRightSubNav?: string;
-  onResetLayout?: () => void;
   navigationMode?: NavigationMode;
-  onNavigationModeChange?: (mode: NavigationMode) => void;
   containerClassName?: string;
   containerStyle?: React.CSSProperties;
 
@@ -95,9 +90,7 @@ export const Header = ({
   activeThirdNav = '',
   activeRightIcon = '',
   activeRightSubNav = '',
-  onResetLayout,
   navigationMode = 'horizontal',
-  onNavigationModeChange,
   containerClassName = 'max-w-[1680px] min-w-[1200px] mx-auto',
   containerStyle = {},
 
@@ -648,94 +641,13 @@ export const Header = ({
                 })}
               </div>
 
-              {/* User Avatar with CSS Hover Dropdown Menu (same as horizontal mode) */}
-              <div className="group relative">
-                <Avatar
-                  size="md"
-                  src={userAvatarUrl}
-                  alt={userName}
-                  initials={userName.charAt(0)}
-                  className="cursor-pointer"
-                />
-
-                <div className="absolute right-0 top-full w-62 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
-                  {/* 不可见的桥接区域 - 扩大hover响应范围，向上覆盖部分导航区域 */}
-                  <div className="h-6 w-full -mt-4" />
-
-                  {/* 实际的下拉菜单 */}
-                  <div className="rounded-lg bg-white shadow-lg ring-1 ring-gray-200">
-                    <div className="py-1">
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onResetLayout) {
-                            onResetLayout();
-                          }
-                        }}
-                        className="dropdown-item-animate flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        <RotateCcw className="mr-3 h-4 w-4 text-gray-400" />
-                        Reset Layout
-                      </button>
-
-                      <div className="border-t border-gray-200 my-1"></div>
-
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onNavigationModeChange) {
-                            onNavigationModeChange('horizontal');
-                          }
-                        }}
-                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                          navigationMode === 'horizontal'
-                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <PanelTop className="mr-3 h-4 w-4 text-gray-400" />
-                        Horizontal Navigation
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onNavigationModeChange) {
-                            onNavigationModeChange('hover');
-                          }
-                        }}
-                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                          navigationMode === 'hover'
-                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <PanelTopOpen className="mr-3 h-4 w-4 text-gray-400" />
-                        Hover-activated Navigation
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onNavigationModeChange) {
-                            onNavigationModeChange('sidebar');
-                          }
-                        }}
-                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                          navigationMode === 'sidebar'
-                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <PanelLeft className="mr-3 h-4 w-4 text-gray-400" />
-                        Sidebar Navigation
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* User Avatar */}
+              <Avatar
+                size="md"
+                src={userAvatarUrl}
+                alt={userName}
+                initials={userName.charAt(0)}
+              />
             </div>
           </div>
         </div>
@@ -883,94 +795,13 @@ export const Header = ({
                 })}
               </div>
 
-              {/* User Avatar with CSS Hover Dropdown Menu */}
-              <div className="group relative">
-                <Avatar
-                  size="md"
-                  src={userAvatarUrl}
-                  alt={userName}
-                  initials={userName.charAt(0)}
-                  className="cursor-pointer"
-                />
-
-                <div className="absolute right-0 top-full w-62 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
-                  {/* 不可见的桥接区域 - 扩大hover响应范围，向上覆盖部分导航区域 */}
-                  <div className="h-6 w-full -mt-4" />
-
-                  {/* 实际的下拉菜单 */}
-                  <div className="rounded-lg bg-white shadow-lg ring-1 ring-gray-200">
-                    <div className="py-1">
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onResetLayout) {
-                            onResetLayout();
-                          }
-                        }}
-                        className="dropdown-item-animate flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        <RotateCcw className="mr-3 h-4 w-4 text-gray-400" />
-                        Reset Layout
-                      </button>
-
-                      <div className="border-t border-gray-200 my-1"></div>
-
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onNavigationModeChange) {
-                            onNavigationModeChange('horizontal');
-                          }
-                        }}
-                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                          navigationMode === 'horizontal'
-                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <PanelTop className="mr-3 h-4 w-4 text-gray-400" />
-                        Horizontal Navigation
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onNavigationModeChange) {
-                            onNavigationModeChange('hover');
-                          }
-                        }}
-                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                          navigationMode === 'hover'
-                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <PanelTopOpen className="mr-3 h-4 w-4 text-gray-400" />
-                        Hover-activated Navigation
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onNavigationModeChange) {
-                            onNavigationModeChange('sidebar');
-                          }
-                        }}
-                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                          navigationMode === 'sidebar'
-                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <PanelLeft className="mr-3 h-4 w-4 text-gray-400" />
-                        Sidebar Navigation
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* User Avatar */}
+              <Avatar
+                size="md"
+                src={userAvatarUrl}
+                alt={userName}
+                initials={userName.charAt(0)}
+              />
             </div>
           </div>
         </div>
@@ -1352,94 +1183,13 @@ export const Header = ({
                 })}
               </div>
 
-              {/* User Avatar with CSS Hover Dropdown Menu */}
-              <div className="group relative">
-                <Avatar
-                  size="md"
-                  src={userAvatarUrl}
-                  alt={userName}
-                  initials={userName.charAt(0)}
-                  className="cursor-pointer"
-                />
-
-                <div className="absolute right-0 top-full w-62 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
-                  {/* Invisible bridge area */}
-                  <div className="h-6 w-full -mt-4" />
-
-                  {/* Actual dropdown menu */}
-                  <div className="rounded-lg bg-white shadow-lg ring-1 ring-gray-200">
-                    <div className="py-1">
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onResetLayout) {
-                            onResetLayout();
-                          }
-                        }}
-                        className="dropdown-item-animate flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        <RotateCcw className="mr-3 h-4 w-4 text-gray-400" />
-                        Reset Layout
-                      </button>
-
-                      <div className="border-t border-gray-200 my-1"></div>
-
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onNavigationModeChange) {
-                            onNavigationModeChange('horizontal');
-                          }
-                        }}
-                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                          false
-                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <PanelTop className="mr-3 h-4 w-4 text-gray-400" />
-                        Horizontal Navigation
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onNavigationModeChange) {
-                            onNavigationModeChange('hover');
-                          }
-                        }}
-                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                          false
-                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <PanelTopOpen className="mr-3 h-4 w-4 text-gray-400" />
-                        Hover-activated Navigation
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (onNavigationModeChange) {
-                            onNavigationModeChange('sidebar');
-                          }
-                        }}
-                        className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                          navigationMode === 'sidebar'
-                            ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <PanelLeft className="mr-3 h-4 w-4 text-gray-400" />
-                        Sidebar Navigation
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* User Avatar */}
+              <Avatar
+                size="md"
+                src={userAvatarUrl}
+                alt={userName}
+                initials={userName.charAt(0)}
+              />
             </div>
           </div>
         </div>
