@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { LayoutControls } from './components/LayoutControls';
 import { WorkspaceLayout } from './components/WorkspaceLayout';
 import { Header, getNavigationItems } from './components/business/Header';
 import { WelcomeSection } from './components/business/WelcomeSection';
@@ -337,19 +338,16 @@ function App() {
   // For sidebar mode, use Header + SidebarLayoutWrapper
   if (navigationMode === 'sidebar') {
     return (
-      <SidebarLayoutWrapper
-        navigationItems={getNavigationItems()}
-        activeMainNav={activeMainNav}
-        activeSubNav={activeSubNav}
-        activeThirdNav={activeThirdNav}
-        activeRightIcon={activeRightIcon}
-        activeRightSubNav={activeRightSubNav}
-        onNavigationChange={handleNavigationChange}
-        onResetLayout={resetLayout}
-        navigationMode={navigationMode}
-        onNavigationModeChange={handleNavigationModeChange}
-      >
+      <SidebarLayoutWrapper>
         <div className="min-h-screen bg-gray-100">
+          {/* Layout Controls Panel - 仅在开发环境显示 */}
+          {process.env.NODE_ENV === 'development' && (
+            <LayoutControls
+              navigationMode={navigationMode}
+              onNavigationModeChange={handleNavigationModeChange}
+              onResetLayout={resetLayout}
+            />
+          )}
           {/* Sticky Header */}
           <div className="sticky top-0 z-50">
             <Header
@@ -386,6 +384,15 @@ function App() {
   // For horizontal and hover modes, use traditional header layout
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Layout Controls Panel - 仅在开发环境显示 */}
+      {process.env.NODE_ENV === 'development' && (
+        <LayoutControls
+          navigationMode={navigationMode}
+          onNavigationModeChange={handleNavigationModeChange}
+          onResetLayout={resetLayout}
+        />
+      )}
+
       <div className="sticky top-0 z-50">
         <Header
           currentBreakpointPreset={currentPreset}
