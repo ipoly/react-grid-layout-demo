@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { LayoutControls } from './components/LayoutControls';
 import { WorkspaceLayout } from './components/WorkspaceLayout';
-import { Header } from './components/business/Header';
+import { Header, getNavigationItems } from './components/business/Header';
 import { WelcomeSection } from './components/business/WelcomeSection';
 import { AssetsMetric } from './components/business/metrics/AssetsMetric';
 import { ClientsMetric } from './components/business/metrics/ClientsMetric';
@@ -9,23 +10,128 @@ import { PlansMetric } from './components/business/metrics/PlansMetric';
 import { TasksMetric } from './components/business/metrics/TasksMetric';
 import { MetricsBar } from './components/layouts/MetricsBar';
 import type { MetricConfig } from './components/layouts/MetricsBar';
-import { getBreakpointPreset } from './config/breakpointPresets';
+import { SidebarLayoutWrapper } from './components/layouts/SidebarLayoutWrapper';
+import { SidebarModeLayout } from './components/layouts/SidebarModeLayout';
 import { STORAGE_KEYS, cleanupOldVersions } from './config/storage';
+import type { NavigationState } from './types/navigation';
+import { NavigationUtils } from './types/navigation';
 
 function App() {
   // 断点预设状态
   const [currentPreset, setCurrentPreset] = useState('experimental');
 
-  // 动态获取当前断点配置
-  const currentBreakpointConfig = useMemo(
-    () => getBreakpointPreset(currentPreset),
-    [currentPreset]
-  );
+  // 导航状态
+  const [activeMainNav, setActiveMainNav] = useState('Planning');
+  const [activeSubNav, setActiveSubNav] = useState('Models');
+  const [activeThirdNav, setActiveThirdNav] = useState('Portfolios');
+
+  // 右侧图标状态
+  const [activeRightIcon, setActiveRightIcon] = useState('');
+  const [activeRightSubNav, setActiveRightSubNav] = useState('');
+
+  // 导航模式状态
+  const [navigationMode, setNavigationMode] = useState<
+    'horizontal' | 'hover' | 'sidebar'
+  >('horizontal');
 
   // 状态管理
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+
+  // 统一导航处理函数
+  const handleNavigationChange = useCallback((navigation: NavigationState) => {
+    const navSubDefaults: { [key: string]: string } = {
+      ChubbyIntel: 'Dashboard',
+      ChubbyFlows: 'Tasks',
+      ChubbyPay: 'Plans',
+      Risk: 'Summary',
+      Models: 'Portfolios',
+      Planning: 'Clients',
+    };
+
+    const thirdNavDefaults: { [key: string]: string } = {
+      Models: 'Portfolios',
+    };
+
+    if (navigation.type === 'main') {
+      const [mainNav, subNav, thirdNav] =
+        NavigationUtils.toMainNavigation(navigation);
+
+      setActiveMainNav(mainNav);
+      // 清除右侧图标的激活状态，确保互斥
+      setActiveRightIcon('');
+      setActiveRightSubNav('');
+
+      // 如果有子导航参数，设置子导航；否则清除子导航
+      if (subNav !== undefined) {
+        setActiveSubNav(subNav);
+      } else {
+        // 当切换主导航时，设置默认的子导航
+        setActiveSubNav(navSubDefaults[mainNav] || '');
+      }
+
+      // 处理第三级导航
+      if (thirdNav !== undefined) {
+        setActiveThirdNav(thirdNav);
+      } else if (subNav !== undefined) {
+        // 当切换子导航时，设置默认的第三级导航
+        setActiveThirdNav(thirdNavDefaults[subNav] || '');
+      } else {
+        setActiveThirdNav('');
+      }
+
+      console.log('Main navigation changed:', {
+        mainNav,
+        subNav: subNav || navSubDefaults[mainNav],
+        thirdNav: thirdNav || thirdNavDefaults[subNav || ''],
+        source: navigation.source,
+      });
+    } else if (navigation.type === 'icon') {
+      const [iconId, subNav] =
+        NavigationUtils.toRightIconNavigation(navigation);
+
+      setActiveRightIcon(iconId);
+      // 清除主导航的激活状态，确保互斥
+      setActiveMainNav('');
+      setActiveSubNav('');
+      setActiveThirdNav('');
+
+      // 设置右侧图标的子导航
+      if (subNav !== undefined) {
+        setActiveRightSubNav(subNav);
+      } else {
+        // 当切换右侧图标时，自动选择第一个子项
+        const getFirstSubItem = (id: string) => {
+          const iconConfigs = {
+            more: ['Models'], // More 下的第一项是 Models (navigationItems.slice(6))
+            sso: ['Goldman Sachs'], // SSO 下的第一项
+            vault: [], // Vault 没有子项
+            notifications: ['Notifications'], // Notifications 下的第一项
+            settings: ['Account'], // Settings 下的第一项
+          };
+          return iconConfigs[id as keyof typeof iconConfigs]?.[0] || '';
+        };
+        setActiveRightSubNav(getFirstSubItem(iconId));
+      }
+
+      console.log('Icon navigation changed:', {
+        iconId,
+        subNav: subNav || 'auto-selected',
+      });
+    }
+  }, []);
+
+  // 向后兼容的旧接口函数已移除，Header组件现在直接使用统一的onNavigationChange回调
+
+  // 处理导航模式变更
+  const handleNavigationModeChange = useCallback(
+    (mode: 'horizontal' | 'hover' | 'sidebar') => {
+      setNavigationMode(mode);
+      localStorage.setItem(STORAGE_KEYS.NAVIGATION_MODE, mode);
+      console.log('Navigation mode changed to:', mode);
+    },
+    []
+  );
 
   // 处理断点预设切换
   const handleBreakpointPresetChange = useCallback((presetId: string) => {
@@ -55,44 +161,82 @@ function App() {
     // 清理旧版本的 localStorage 数据
     cleanupOldVersions();
 
-    const saved = localStorage.getItem(STORAGE_KEYS.BREAKPOINT_PRESET);
-    if (saved) {
-      setCurrentPreset(saved);
+    const savedPreset = localStorage.getItem(STORAGE_KEYS.BREAKPOINT_PRESET);
+    if (savedPreset) {
+      setCurrentPreset(savedPreset);
     }
-  }, []);
 
-  // 检测移动设备
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const savedNavigationMode = localStorage.getItem(
+      STORAGE_KEYS.NAVIGATION_MODE
+    );
+    if (
+      savedNavigationMode === 'horizontal' ||
+      savedNavigationMode === 'hover' ||
+      savedNavigationMode === 'sidebar'
+    ) {
+      setNavigationMode(savedNavigationMode);
+    }
   }, []);
 
   // 重置布局
   const resetLayout = useCallback(() => {
+    console.log('🔄 resetLayout function called');
+    console.log('📦 Before clear localStorage:', {
+      topLayouts: localStorage.getItem(STORAGE_KEYS.TOP_LAYOUTS),
+      sideLayouts: localStorage.getItem(STORAGE_KEYS.SIDE_LAYOUTS),
+      activitiesColumns: localStorage.getItem(STORAGE_KEYS.ACTIVITIES_COLUMNS),
+      navigationMode: localStorage.getItem(STORAGE_KEYS.NAVIGATION_MODE),
+    });
+
     // 清除本地存储
     localStorage.removeItem(STORAGE_KEYS.TOP_LAYOUTS);
     localStorage.removeItem(STORAGE_KEYS.SIDE_LAYOUTS);
     localStorage.removeItem(STORAGE_KEYS.ACTIVITIES_COLUMNS);
+    localStorage.removeItem(STORAGE_KEYS.NAVIGATION_MODE);
 
-    // 重置两个面板的布局
+    // 重置导航模式到默认值
+    setNavigationMode('horizontal');
+
+    console.log('🗑️ After clear localStorage:', {
+      topLayouts: localStorage.getItem(STORAGE_KEYS.TOP_LAYOUTS),
+      sideLayouts: localStorage.getItem(STORAGE_KEYS.SIDE_LAYOUTS),
+      activitiesColumns: localStorage.getItem(STORAGE_KEYS.ACTIVITIES_COLUMNS),
+      navigationMode: localStorage.getItem(STORAGE_KEYS.NAVIGATION_MODE),
+    });
+
+    // 重置各种布局组件
     const windowWithReset = window as Window & {
-      __resetTopPaneLayout?: () => void;
+      __resetLayouts?: { [key: string]: () => void };
       __resetWorkspaceLayout?: () => void;
     };
 
-    if (windowWithReset.__resetTopPaneLayout) {
-      windowWithReset.__resetTopPaneLayout();
-    }
-    if (windowWithReset.__resetWorkspaceLayout) {
-      windowWithReset.__resetWorkspaceLayout();
+    console.log('🪟 Window reset callbacks availability:', {
+      resetLayouts: typeof windowWithReset.__resetLayouts,
+      resetWorkspace: typeof windowWithReset.__resetWorkspaceLayout,
+    });
+
+    // 重置 GridLayout (用于 MetricsBar)
+    if (windowWithReset.__resetLayouts) {
+      const topLayoutsKey = STORAGE_KEYS.TOP_LAYOUTS;
+      if (windowWithReset.__resetLayouts[topLayoutsKey]) {
+        console.log('📊 Calling __resetLayouts for', topLayoutsKey);
+        windowWithReset.__resetLayouts[topLayoutsKey]();
+      } else {
+        console.warn('⚠️ __resetLayouts not available for', topLayoutsKey);
+      }
+    } else {
+      console.warn('⚠️ __resetLayouts not available');
     }
 
-    console.log('Layout reset to default');
+    // 重置 WorkspaceLayout
+    if (windowWithReset.__resetWorkspaceLayout) {
+      console.log('🏢 Calling __resetWorkspaceLayout');
+      windowWithReset.__resetWorkspaceLayout();
+    } else {
+      console.warn('⚠️ __resetWorkspaceLayout not available');
+    }
+
+    console.log('✅ Layout reset completed');
   }, []);
 
   // 拖拽事件处理
@@ -101,37 +245,11 @@ function App() {
   const handleResizeStart = useCallback(() => setIsResizing(true), []);
   const handleResizeStop = useCallback(() => setIsResizing(false), []);
 
-  // 动态断点配置 - 根据选择的预设
+  // 固定断点配置 - 针对固定宽度设计
   const breakpoints = useMemo(
-    () => currentBreakpointConfig.breakpoints,
-    [currentBreakpointConfig]
+    () => ({ lg: 1200 }), // 单一断点，适用于固定宽度
+    []
   );
-
-  // 动态容器样式
-  const containerStyle = useMemo(() => {
-    const config = currentBreakpointConfig.containerConfig;
-    if (!config || !config.adaptive) {
-      return {}; // 使用默认的 max-w-7xl
-    }
-
-    return {
-      minWidth: config.minWidth ? `${config.minWidth}px` : undefined,
-      maxWidth: config.maxWidth ? `${config.maxWidth}px` : undefined,
-      width: config.adaptive ? '100%' : undefined,
-    };
-  }, [currentBreakpointConfig]);
-
-  // 动态容器类名
-  const containerClassName = useMemo(() => {
-    const config = currentBreakpointConfig.containerConfig;
-    const baseClasses = 'mx-auto px-4 sm:px-6 py-4 sm:py-8';
-
-    if (!config || !config.adaptive) {
-      return `max-w-7xl ${baseClasses}`;
-    }
-
-    return baseClasses;
-  }, [currentBreakpointConfig]);
 
   // 指标配置
   const metricsConfig: MetricConfig[] = useMemo(
@@ -164,22 +282,11 @@ function App() {
     []
   );
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 z-50">
-        <Header
-          currentBreakpointPreset={currentPreset}
-          onBreakpointPresetChange={handleBreakpointPresetChange}
-        />
-      </div>
-
-      <main className={containerClassName} style={containerStyle}>
-        <WelcomeSection
-          onResetLayout={resetLayout}
-          isDragging={isDragging}
-          isResizing={isResizing}
-          isMobile={isMobile}
-        />
+  // Main content component that both layouts will use - memoized to prevent unnecessary re-renders
+  const MainContent = useMemo(
+    () => (
+      <main className="flex-1 max-w-[1680px] min-w-[1280px] w-full mx-auto px-6 py-8">
+        <WelcomeSection isDragging={isDragging} isResizing={isResizing} />
 
         {/* 顶部指标栏 */}
         <div className="mb-6">
@@ -192,11 +299,10 @@ function App() {
               tabletBehavior="grid"
               breakpoints={breakpoints}
               reorderable={true}
-              draggable={!isMobile}
+              draggable={true}
               resizable={false}
               storageKey={STORAGE_KEYS.TOP_LAYOUTS}
               autoSave={true}
-              isMobile={isMobile}
               onDragStart={handleDragStart}
               onDragStop={handleDragStop}
               onResizeStart={handleResizeStart}
@@ -210,13 +316,97 @@ function App() {
         <WorkspaceLayout
           isDragging={isDragging}
           isResizing={isResizing}
-          isMobile={isMobile}
           onDragStart={handleDragStart}
           onDragStop={handleDragStop}
           onResizeStart={handleResizeStart}
           onResizeStop={handleResizeStop}
         />
       </main>
+    ),
+    [
+      isDragging,
+      isResizing,
+      metricsConfig,
+      breakpoints,
+      handleDragStart,
+      handleDragStop,
+      handleResizeStart,
+      handleResizeStop,
+    ]
+  );
+
+  // For sidebar mode, use Header + SidebarLayoutWrapper
+  if (navigationMode === 'sidebar') {
+    return (
+      <SidebarLayoutWrapper>
+        <div className="min-h-screen bg-gray-100">
+          {/* Layout Controls Panel - 仅在开发环境显示 */}
+          {process.env.NODE_ENV === 'development' && (
+            <LayoutControls
+              navigationMode={navigationMode}
+              onNavigationModeChange={handleNavigationModeChange}
+              onResetLayout={resetLayout}
+            />
+          )}
+          {/* Sticky Header */}
+          <div className="sticky top-0 z-50">
+            <Header
+              activeMainNav={activeMainNav}
+              activeSubNav={activeSubNav}
+              activeThirdNav={activeThirdNav}
+              activeRightIcon={activeRightIcon}
+              activeRightSubNav={activeRightSubNav}
+              onNavigationChange={handleNavigationChange}
+              navigationMode={navigationMode}
+              containerClassName="w-full"
+            />
+          </div>
+
+          {/* Main content with sidebar space consideration */}
+          <SidebarModeLayout
+            navigationItems={getNavigationItems()}
+            onNavigationChange={handleNavigationChange}
+            activeMainNav={activeMainNav}
+            activeSubNav={activeSubNav}
+            activeThirdNav={activeThirdNav}
+            activeRightIcon={activeRightIcon}
+            activeRightSubNav={activeRightSubNav}
+          >
+            {MainContent}
+          </SidebarModeLayout>
+        </div>
+      </SidebarLayoutWrapper>
+    );
+  }
+
+  // For horizontal and hover modes, use traditional header layout
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* Layout Controls Panel - 仅在开发环境显示 */}
+      {process.env.NODE_ENV === 'development' && (
+        <LayoutControls
+          navigationMode={navigationMode}
+          onNavigationModeChange={handleNavigationModeChange}
+          onResetLayout={resetLayout}
+        />
+      )}
+
+      <div className="sticky top-0 z-50">
+        <Header
+          currentBreakpointPreset={currentPreset}
+          onBreakpointPresetChange={handleBreakpointPresetChange}
+          activeMainNav={activeMainNav}
+          activeSubNav={activeSubNav}
+          activeThirdNav={activeThirdNav}
+          activeRightIcon={activeRightIcon}
+          activeRightSubNav={activeRightSubNav}
+          onNavigationChange={handleNavigationChange}
+          navigationMode={navigationMode}
+          containerClassName="max-w-[1680px] min-w-[1280px] mx-auto"
+        />
+      </div>
+
+      {MainContent}
     </div>
   );
 }

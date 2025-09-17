@@ -13,6 +13,7 @@ export const STORAGE_KEYS = {
   SIDE_LAYOUTS: `dashboard-side-layouts-${STORAGE_VERSION}`,
   ACTIVITIES_COLUMNS: `activities-grid-columns-${STORAGE_VERSION}`,
   BREAKPOINT_PRESET: `dashboard-breakpoint-preset-${STORAGE_VERSION}`,
+  NAVIGATION_MODE: `dashboard-navigation-mode-${STORAGE_VERSION}`,
 } as const;
 
 // Helper function to clean up old versions

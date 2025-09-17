@@ -13,13 +13,16 @@
           "screen",
           "theme",
           "layer",
-          "utility"
+          "utility",
+          "plugin",
+          "custom-variant"
         ]
       }
     ],
     "no-descending-specificity": null,
     "declaration-property-value-no-unknown": null,
     "custom-property-no-missing-var-function": null,
+    "nesting-selector-no-missing-scoping-root": null,
     "comment-empty-line-before": [
       "always",
       {

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Sidebar Layout</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui;
+      }
+
+      .container {
+        display: flex;
+        min-height: 100vh;
+        background: #f9fafb;
+      }
+
+      /* Sidebar wrapper - participates in flex layout */
+      .sidebar-wrapper {
+        flex-shrink: 0;
+        position: relative;
+        width: 280px;
+        transition: width 0.3s ease;
+      }
+
+      /* Overlay mode - wrapper shrinks to 0 */
+      .sidebar-wrapper.overlay {
+        width: 0;
+      }
+
+      /* Actual sidebar - fixed width, can overflow wrapper */
+      .sidebar {
+        position: sticky;
+        top: 0;
+        width: 280px;
+        height: 100vh;
+        background: white;
+        border-right: 1px solid #e5e7eb;
+        z-index: 50;
+        transform: translateX(0);
+        transition: transform 0.3s ease;
+      }
+
+      /* Sidebar in overlay mode */
+      .sidebar-wrapper.overlay .sidebar {
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      }
+
+      /* Hidden state */
+      .sidebar-wrapper.overlay.hidden .sidebar {
+        transform: translateX(-100%);
+      }
+
+      /* Main content */
+      .main {
+        flex: 1;
+        min-width: 1280px;
+        background: white;
+        padding: 2rem;
+        box-sizing: border-box;
+      }
+
+      .controls {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+        background: white;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      button {
+        padding: 5px 10px;
+        margin: 5px;
+        cursor: pointer;
+      }
+
+      .info {
+        margin-top: 10px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar-wrapper" id="sidebarWrapper">
+        <aside class="sidebar">
+          <div style="padding: 20px">
+            <h2>Sidebar Content</h2>
+            <p>Width: 280px</p>
+            <p>
+              This sidebar has fixed width and can overflow its wrapper when in
+              overlay mode.
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <main class="main">
+        <h1>Main Content Area</h1>
+        <p>Min width: 1280px</p>
+        <p>
+          This content area expands to fill available space but maintains a
+          minimum width of 1280px.
+        </p>
+        <div
+          style="
+            margin-top: 20px;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 8px;
+          "
+        >
+          <h3>How it works:</h3>
+          <ul>
+            <li>Window ≥ 1560px: Sidebar shows normally, content expands</li>
+            <li>
+              Window < 1560px: Sidebar wrapper shrinks to 0, sidebar overlays
+              content
+            </li>
+            <li>
+              The sidebar uses high z-index to stay above content when
+              overlaying
+            </li>
+          </ul>
+        </div>
+      </main>
+    </div>
+
+    <div class="controls">
+      <button onclick="toggleOverlay()">Toggle Overlay Mode</button>
+      <button onclick="toggleSidebar()">Toggle Sidebar</button>
+      <div class="info">
+        Window width: <span id="windowWidth"></span>px<br />
+        Mode: <span id="mode"></span>
+      </div>
+    </div>
+
+    <script>
+      const OVERLAY_BREAKPOINT = 1560;
+      const sidebarWrapper = document.getElementById('sidebarWrapper');
+      const windowWidthSpan = document.getElementById('windowWidth');
+      const modeSpan = document.getElementById('mode');
+
+      function updateMode() {
+        const width = window.innerWidth;
+        windowWidthSpan.textContent = width;
+
+        if (width < OVERLAY_BREAKPOINT) {
+          sidebarWrapper.classList.add('overlay');
+          modeSpan.textContent = 'Overlay';
+        } else {
+          sidebarWrapper.classList.remove('overlay');
+          sidebarWrapper.classList.remove('hidden');
+          modeSpan.textContent = 'Normal';
+        }
+      }
+
+      function toggleOverlay() {
+        sidebarWrapper.classList.toggle('overlay');
+        updateMode();
+      }
+
+      function toggleSidebar() {
+        if (sidebarWrapper.classList.contains('overlay')) {
+          sidebarWrapper.classList.toggle('hidden');
+        }
+      }
+
+      window.addEventListener('resize', updateMode);
+      updateMode();
+    </script>
+  </body>
+</html>

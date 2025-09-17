@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-基于 React Grid Layout + Untitled UI 的响应式网格布局演示项目，展示拖拽、调整大小等交互功能。
+基于 React Grid Layout + Untitled UI 的固定宽度网格布局演示项目，专为 1280-1680px 桌面端优化，展示拖拽、调整大小等交互功能。
 
 ## 技术栈
 
@@ -61,12 +61,21 @@ const handleLayoutChange = useCallback((layout: Layout[], layouts: Layouts) => {
 }, []);
 ```
 
-### 响应式配置
+### 固定宽度配置
 
 ```tsx
-// 推荐的断点配置
-breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+// 固定宽度布局配置（1280-1680px）
+export interface BreakpointConfig {
+  id: string;
+  name: string;
+  description: string;
+  cols: number; // 固定 12 列
+  containerConfig: {
+    minWidth: 1280;
+    maxWidth: 1680;
+    adaptive: true;
+  };
+}
 ```
 
 ### 布局持久化
@@ -359,7 +368,7 @@ export default defineConfig({
 - **CSS 样式不生效**: 确保导入了 `react-grid-layout/css/styles.css`
 - **拖拽不响应**: 检查 `isDraggable` 和 `isResizable` 属性
 - **布局重叠**: 调整 `margin` 和 `containerPadding` 设置
-- **响应式问题**: 检查断点配置和列数设置
+- **固定宽度问题**: 检查容器宽度配置和列数设置
 
 ### 调试技巧
 
@@ -412,6 +421,184 @@ export default defineConfig({
 <FeaturedIcon color="brand" theme="light" size="lg">
   <CheckCircle className="h-5 w-5" />
 </FeaturedIcon>
+```
+
+## Navigation System Architecture
+
+### 统一导航回调系统
+
+项目采用统一的导航回调架构，将主导航和右侧图标导航整合为一个类型安全的系统。
+
+#### 核心类型定义
+
+```typescript
+// src/types/navigation.ts
+export interface NavigationState {
+  /** 导航类型：主导航或右侧图标导航 */
+  type: 'main' | 'icon';
+  /** 导航路径数组，按层级顺序排列 */
+  path: string[];
+  /** 可选的来源标识符，用于标识特定的图标或特殊情况 */
+  source?: string;
+}
+
+export type NavigationChangeHandler = (navigation: NavigationState) => void;
+```
+
+#### NavigationUtils 工具函数
+
+```typescript
+// 转换函数：从统一格式转为组件特定格式
+NavigationUtils.toMainNavigation(navigation): [string, string?, string?]
+NavigationUtils.toRightIconNavigation(navigation): [string, string?]
+
+// 创建函数：从组件参数创建统一格式
+NavigationUtils.fromMainNavigation(mainNav, subNav?, thirdNav?, source?): NavigationState
+NavigationUtils.fromRightIconNavigation(iconId, subNav?): NavigationState
+
+// 比较函数：判断两个导航状态是否相等
+NavigationUtils.isEqual(a: NavigationState, b: NavigationState): boolean
+```
+
+#### Header 组件使用方式
+
+```tsx
+// 新的统一回调接口 (推荐)
+<Header
+  onNavigationChange={(navigation: NavigationState) => {
+    if (navigation.type === 'main') {
+      const [mainNav, subNav, thirdNav] = NavigationUtils.toMainNavigation(navigation);
+      // 处理主导航逻辑
+    } else if (navigation.type === 'icon') {
+      const [iconId, subNav] = NavigationUtils.toRightIconNavigation(navigation);
+      // 处理图标导航逻辑
+    }
+  }}
+/>
+
+// 向后兼容的回调 (已弃用)
+<Header
+  onNavChange={(mainNav, subNav, thirdNav) => { /* ... */ }}
+  onRightIconChange={(iconId, subNav) => { /* ... */ }}
+/>
+```
+
+### 面包屑导航系统
+
+面包屑导航提供多级导航路径显示和快速切换功能，仅在 `hover` 导航模式下激活。
+
+#### 功能特性
+
+- **层级显示**: 显示完整的导航路径 (主导航 > 子导航 > 三级导航)
+- **右侧图标支持**: 支持右侧图标的导航路径显示
+- **下拉切换**: 除第一级外的所有层级都支持下拉菜单快速切换兄弟节点
+- **智能显示**: 只在有多个兄弟节点时显示下拉菜单
+
+#### 实现架构
+
+```typescript
+interface BreadcrumbItem {
+  label: string; // 显示文本
+  level: number; // 层级 (0, 1, 2)
+  type: 'rightIcon' | 'mainNav'; // 导航类型
+  iconId?: string; // 右侧图标ID (type='rightIcon'时)
+  siblings?: Array<{
+    // 兄弟节点数据
+    name: string;
+    active: boolean;
+    isExternal?: boolean;
+  }>;
+  hasDropdown?: boolean; // 是否显示下拉菜单
+}
+```
+
+#### 兄弟节点计算逻辑
+
+```typescript
+const getSiblings = (item: BreadcrumbItem) => {
+  if (item.type === 'rightIcon' && item.iconId) {
+    // 获取右侧图标的子菜单项作为兄弟节点
+    const rightIcon = rightSideIcons.find((icon) => icon.id === item.iconId);
+    return rightIcon?.subItems || [];
+  } else if (item.type === 'mainNav') {
+    if (item.level === 1) {
+      // Level 1: 当前主导航的子导航项
+      const mainNavItem = navigationItems.find(
+        (nav) => nav.name === activeMainNav
+      );
+      return mainNavItem?.subItems || [];
+    } else if (item.level === 2) {
+      // Level 2: 当前子导航的三级导航项
+      const subNavItem = activeNavItem?.subItems?.find(
+        (sub) => sub.name === activeSubNav
+      );
+      return subNavItem?.subItems || [];
+    }
+  }
+  return [];
+};
+```
+
+#### 下拉菜单UI特性
+
+- **Hover触发**: 使用CSS `:hover` 伪类实现悬停显示
+- **过渡动画**: 200ms缓入缓出动画，带垂直平移效果
+- **错列显示**: 使用 `animationDelay` 实现菜单项的错列出现效果
+- **桥接区域**: 不可见的桥接元素确保鼠标移动时的流畅体验
+
+### 导航模式对比
+
+| 功能     | Horizontal Mode | Hover Mode     | Sidebar Mode    |
+| -------- | --------------- | -------------- | --------------- |
+| 主导航   | 水平导航栏      | 悬停下拉菜单   | 侧边栏 (开发中) |
+| 子导航   | 水平子导航栏    | 包含在下拉菜单 | -               |
+| 三级导航 | 独立水平栏      | 二级下拉菜单   | -               |
+| 面包屑   | ❌              | ✅             | -               |
+| 图标导航 | 水平子导航栏    | 悬停下拉菜单   | -               |
+
+### 最佳实践
+
+#### 导航回调优化
+
+```tsx
+// ✅ 推荐：使用统一回调
+const handleNavigationChange = useCallback((navigation: NavigationState) => {
+  // 统一处理所有导航变更
+}, []);
+
+// ❌ 避免：分离的回调函数
+const handleNavChange = useCallback((mainNav, subNav, thirdNav) => { ... }, []);
+const handleRightIconChange = useCallback((iconId, subNav) => { ... }, []);
+```
+
+#### 类型安全导航
+
+```tsx
+// ✅ 使用工具函数确保类型安全
+const navigation = NavigationUtils.fromMainNavigation(
+  'Planning',
+  'Models',
+  'Portfolios'
+);
+
+// ✅ 检查导航状态相等性
+if (NavigationUtils.isEqual(currentNav, targetNav)) {
+  // 导航状态相同，跳过处理
+}
+```
+
+#### 状态管理建议
+
+```tsx
+// ✅ 统一管理导航状态
+const [currentNavigation, setCurrentNavigation] = useState<NavigationState>({
+  type: 'main',
+  path: ['Planning', 'Models', 'Portfolios'],
+});
+
+// ✅ 使用工具函数提取具体值
+const [activeMain, activeSub, activeThird] =
+  NavigationUtils.toMainNavigation(currentNavigation);
 ```
 
 ## TypeScript 类型设计模式
@@ -556,24 +743,24 @@ interface Layout {
 }
 ```
 
-### ResponsiveGridLayout 组件
+### 固定宽度布局组件
 
 ```tsx
-interface ResponsiveGridLayoutProps
-  extends Omit<GridLayoutProps, 'layout' | 'cols' | 'width'> {
-  // 响应式配置
-  breakpoints: { [breakpoint: string]: number }; // 断点配置
-  cols: { [breakpoint: string]: number }; // 各断点列数
-  layouts: { [breakpoint: string]: Layout[] }; // 各断点布局
+// 针对固定宽度设计，使用标准 GridLayout
+interface FixedGridLayoutProps extends GridLayoutProps {
+  // 固定配置
+  cols: 12; // 始终使用 12 列网格
+  width: number; // 固定宽度 (1280-1680px 范围内)
 
-  // 响应式回调
-  onBreakpointChange: (newBreakpoint: string, newCols: number) => void;
-  onWidthChange: (
-    containerWidth: number,
-    margin: [number, number],
-    cols: number,
-    containerPadding: [number, number]
-  ) => void;
+  // 布局配置
+  layout: Layout[]; // 单一布局配置
+
+  // 容器配置
+  containerConfig?: {
+    minWidth: 1280;
+    maxWidth: 1680;
+    adaptive: true;
+  };
 }
 ```
 
@@ -611,43 +798,31 @@ function BasicGrid() {
 }
 ```
 
-#### 响应式网格
+#### 固定宽度网格
 
 ```tsx
-import { Responsive as ResponsiveGridLayout } from 'react-grid-layout';
+import GridLayout from 'react-grid-layout';
 
-function ResponsiveGrid() {
-  const layouts = {
-    lg: [
-      { i: 'a', x: 0, y: 0, w: 4, h: 2 },
-      { i: 'b', x: 4, y: 0, w: 4, h: 2 },
-      { i: 'c', x: 8, y: 0, w: 4, h: 2 },
-    ],
-    md: [
-      { i: 'a', x: 0, y: 0, w: 3, h: 2 },
-      { i: 'b', x: 3, y: 0, w: 3, h: 2 },
-      { i: 'c', x: 6, y: 0, w: 4, h: 2 },
-    ],
-    sm: [
-      { i: 'a', x: 0, y: 0, w: 6, h: 2 },
-      { i: 'b', x: 0, y: 2, w: 6, h: 2 },
-      { i: 'c', x: 0, y: 4, w: 6, h: 2 },
-    ],
-  };
+function FixedWidthGrid() {
+  const layout = [
+    { i: 'a', x: 0, y: 0, w: 4, h: 2 },
+    { i: 'b', x: 4, y: 0, w: 4, h: 2 },
+    { i: 'c', x: 8, y: 0, w: 4, h: 2 },
+  ];
 
   return (
-    <ResponsiveGridLayout
+    <GridLayout
       className="layout"
-      layouts={layouts}
-      breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-      cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+      layout={layout}
+      cols={12} // 固定 12 列
       rowHeight={60}
-      onLayoutChange={(layout, layouts) => setLayouts(layouts)}
+      width={1400} // 固定宽度，适用于 1280-1680px 范围
+      onLayoutChange={(layout) => setLayout(layout)}
     >
       <div key="a">a</div>
       <div key="b">b</div>
       <div key="c">c</div>
-    </ResponsiveGridLayout>
+    </GridLayout>
   );
 }
 ```
