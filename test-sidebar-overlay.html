@@ -1,229 +1,269 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sidebar Overlay Mode Test</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      padding: 40px;
-      line-height: 1.6;
-      background: #f5f5f5;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    h1 {
-      color: #333;
-      margin-bottom: 24px;
-    }
-    .test-section {
-      margin: 24px 0;
-      padding: 20px;
-      background: #f9f9f9;
-      border-radius: 4px;
-      border: 1px solid #e0e0e0;
-    }
-    .test-title {
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 12px;
-    }
-    .window-sizes {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin: 16px 0;
-    }
-    .size-btn {
-      padding: 8px 16px;
-      border: 2px solid #4a90e2;
-      background: white;
-      color: #4a90e2;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .size-btn:hover {
-      background: #4a90e2;
-      color: white;
-    }
-    .size-btn.active {
-      background: #357abd;
-      color: white;
-      border-color: #357abd;
-    }
-    .current-size {
-      padding: 12px;
-      background: #e3f2fd;
-      border-radius: 4px;
-      margin: 16px 0;
-      font-family: monospace;
-    }
-    .status {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .status.overlay {
-      background: #ffecb3;
-      color: #e65100;
-    }
-    .status.normal {
-      background: #c8e6c9;
-      color: #1b5e20;
-    }
-    iframe {
-      width: 100%;
-      height: 600px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      margin: 16px 0;
-    }
-    .instructions {
-      background: #fff8e1;
-      padding: 16px;
-      border-radius: 4px;
-      border-left: 4px solid #ffc107;
-      margin: 20px 0;
-    }
-    .instructions ul {
-      margin: 12px 0 0 20px;
-    }
-    .instructions li {
-      margin: 8px 0;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>🧪 Sidebar Overlay Mode Test</h1>
-
-    <div class="instructions">
-      <strong>📋 Test Instructions:</strong>
-      <ul>
-        <li>Click buttons below to resize window and test responsive behavior</li>
-        <li>In overlay mode (< 1560px), hover over the PanelLeft icon to show sidebar</li>
-        <li>Move mouse from icon to sidebar - it should stay open</li>
-        <li>Move mouse away from both - sidebar should auto-hide after 300ms</li>
-        <li>In normal mode (≥ 1560px), sidebar should always be visible</li>
-      </ul>
-    </div>
-
-    <div class="test-section">
-      <div class="test-title">Window Size Control</div>
-      <div class="current-size">
-        Current Window Size: <strong id="currentSize">--</strong> |
-        Mode: <span id="modeStatus" class="status">--</span>
-      </div>
-
-      <div class="window-sizes">
-        <button class="size-btn" onclick="resizeWindow(1200, 800)" data-width="1200">
-          Small (1200×800)<br>
-          <small>Overlay Mode</small>
-        </button>
-        <button class="size-btn" onclick="resizeWindow(1400, 800)" data-width="1400">
-          Medium (1400×800)<br>
-          <small>Overlay Mode</small>
-        </button>
-        <button class="size-btn" onclick="resizeWindow(1550, 800)" data-width="1550">
-          Near Breakpoint (1550×800)<br>
-          <small>Overlay Mode</small>
-        </button>
-        <button class="size-btn" onclick="resizeWindow(1560, 800)" data-width="1560">
-          Breakpoint (1560×800)<br>
-          <small>Normal Mode</small>
-        </button>
-        <button class="size-btn" onclick="resizeWindow(1680, 900)" data-width="1680">
-          Large (1680×900)<br>
-          <small>Normal Mode</small>
-        </button>
-        <button class="size-btn" onclick="resizeWindow(1920, 1080)" data-width="1920">
-          Full HD (1920×1080)<br>
-          <small>Normal Mode</small>
-        </button>
-      </div>
-    </div>
-
-    <div class="test-section">
-      <div class="test-title">App Preview</div>
-      <iframe id="appFrame" src="http://localhost:5175/" title="React App"></iframe>
-    </div>
-
-    <div class="test-section">
-      <div class="test-title">Test Checklist</div>
-      <ul style="margin-left: 20px;">
-        <li>✅ Sidebar hidden by default when width < 1560px</li>
-        <li>✅ PanelLeft icon visible in top bar when width < 1560px</li>
-        <li>✅ Sidebar slides out on hover over PanelLeft icon</li>
-        <li>✅ Sidebar stays open when mouse moves from icon to sidebar</li>
-        <li>✅ Sidebar auto-hides 300ms after mouse leaves both areas</li>
-        <li>✅ Sidebar always visible when width ≥ 1560px</li>
-        <li>✅ PanelLeft icon hidden when width ≥ 1560px</li>
-        <li>✅ Smooth transitions between states</li>
-      </ul>
-    </div>
-  </div>
-
-  <script>
-    const BREAKPOINT = 1560;
-
-    function updateStatus() {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      const isOverlay = width < BREAKPOINT;
-
-      document.getElementById('currentSize').textContent = `${width}×${height}px`;
-
-      const modeStatus = document.getElementById('modeStatus');
-      modeStatus.textContent = isOverlay ? 'Overlay Mode' : 'Normal Mode';
-      modeStatus.className = isOverlay ? 'status overlay' : 'status normal';
-
-      // Update active button
-      document.querySelectorAll('.size-btn').forEach(btn => {
-        const btnWidth = parseInt(btn.dataset.width);
-        btn.classList.toggle('active', Math.abs(width - btnWidth) < 50);
-      });
-    }
-
-    function resizeWindow(width, height) {
-      // For testing, we'll resize the parent window
-      window.resizeTo(width, height);
-
-      // Update iframe size to simulate window size
-      const iframe = document.getElementById('appFrame');
-      iframe.style.width = width + 'px';
-
-      setTimeout(updateStatus, 100);
-    }
-
-    // Initial update
-    updateStatus();
-
-    // Update on window resize
-    window.addEventListener('resize', updateStatus);
-
-    // Refresh iframe periodically to test changes
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'r' && e.metaKey) {
-        e.preventDefault();
-        document.getElementById('appFrame').src = document.getElementById('appFrame').src;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sidebar Overlay Mode Test</title>
+    <style>
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        padding: 40px;
+        line-height: 1.6;
+        background: #f5f5f5;
       }
-    });
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 24px;
+      }
+      .test-section {
+        margin: 24px 0;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 4px;
+        border: 1px solid #e0e0e0;
+      }
+      .test-title {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 12px;
+      }
+      .window-sizes {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 16px 0;
+      }
+      .size-btn {
+        padding: 8px 16px;
+        border: 2px solid #4a90e2;
+        background: white;
+        color: #4a90e2;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .size-btn:hover {
+        background: #4a90e2;
+        color: white;
+      }
+      .size-btn.active {
+        background: #357abd;
+        color: white;
+        border-color: #357abd;
+      }
+      .current-size {
+        padding: 12px;
+        background: #e3f2fd;
+        border-radius: 4px;
+        margin: 16px 0;
+        font-family: monospace;
+      }
+      .status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .status.overlay {
+        background: #ffecb3;
+        color: #e65100;
+      }
+      .status.normal {
+        background: #c8e6c9;
+        color: #1b5e20;
+      }
+      iframe {
+        width: 100%;
+        height: 600px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 16px 0;
+      }
+      .instructions {
+        background: #fff8e1;
+        padding: 16px;
+        border-radius: 4px;
+        border-left: 4px solid #ffc107;
+        margin: 20px 0;
+      }
+      .instructions ul {
+        margin: 12px 0 0 20px;
+      }
+      .instructions li {
+        margin: 8px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🧪 Sidebar Overlay Mode Test</h1>
 
-    // Log when iframe loads
-    document.getElementById('appFrame').onload = function() {
-      console.log('App loaded in iframe');
+      <div class="instructions">
+        <strong>📋 Test Instructions:</strong>
+        <ul>
+          <li>
+            Click buttons below to resize window and test responsive behavior
+          </li>
+          <li>
+            In overlay mode (< 1560px), hover over the PanelLeft icon to show
+            sidebar
+          </li>
+          <li>Move mouse from icon to sidebar - it should stay open</li>
+          <li>
+            Move mouse away from both - sidebar should auto-hide after 300ms
+          </li>
+          <li>In normal mode (≥ 1560px), sidebar should always be visible</li>
+        </ul>
+      </div>
+
+      <div class="test-section">
+        <div class="test-title">Window Size Control</div>
+        <div class="current-size">
+          Current Window Size: <strong id="currentSize">--</strong> | Mode:
+          <span id="modeStatus" class="status">--</span>
+        </div>
+
+        <div class="window-sizes">
+          <button
+            class="size-btn"
+            onclick="resizeWindow(1200, 800)"
+            data-width="1200"
+          >
+            Small (1200×800)<br />
+            <small>Overlay Mode</small>
+          </button>
+          <button
+            class="size-btn"
+            onclick="resizeWindow(1400, 800)"
+            data-width="1400"
+          >
+            Medium (1400×800)<br />
+            <small>Overlay Mode</small>
+          </button>
+          <button
+            class="size-btn"
+            onclick="resizeWindow(1550, 800)"
+            data-width="1550"
+          >
+            Near Breakpoint (1550×800)<br />
+            <small>Overlay Mode</small>
+          </button>
+          <button
+            class="size-btn"
+            onclick="resizeWindow(1560, 800)"
+            data-width="1560"
+          >
+            Breakpoint (1560×800)<br />
+            <small>Normal Mode</small>
+          </button>
+          <button
+            class="size-btn"
+            onclick="resizeWindow(1680, 900)"
+            data-width="1680"
+          >
+            Large (1680×900)<br />
+            <small>Normal Mode</small>
+          </button>
+          <button
+            class="size-btn"
+            onclick="resizeWindow(1920, 1080)"
+            data-width="1920"
+          >
+            Full HD (1920×1080)<br />
+            <small>Normal Mode</small>
+          </button>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <div class="test-title">App Preview</div>
+        <iframe
+          id="appFrame"
+          src="http://localhost:5175/"
+          title="React App"
+        ></iframe>
+      </div>
+
+      <div class="test-section">
+        <div class="test-title">Test Checklist</div>
+        <ul style="margin-left: 20px">
+          <li>✅ Sidebar hidden by default when width < 1560px</li>
+          <li>✅ PanelLeft icon visible in top bar when width < 1560px</li>
+          <li>✅ Sidebar slides out on hover over PanelLeft icon</li>
+          <li>✅ Sidebar stays open when mouse moves from icon to sidebar</li>
+          <li>✅ Sidebar auto-hides 300ms after mouse leaves both areas</li>
+          <li>✅ Sidebar always visible when width ≥ 1560px</li>
+          <li>✅ PanelLeft icon hidden when width ≥ 1560px</li>
+          <li>✅ Smooth transitions between states</li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      const BREAKPOINT = 1560;
+
+      function updateStatus() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const isOverlay = width < BREAKPOINT;
+
+        document.getElementById('currentSize').textContent =
+          `${width}×${height}px`;
+
+        const modeStatus = document.getElementById('modeStatus');
+        modeStatus.textContent = isOverlay ? 'Overlay Mode' : 'Normal Mode';
+        modeStatus.className = isOverlay ? 'status overlay' : 'status normal';
+
+        // Update active button
+        document.querySelectorAll('.size-btn').forEach((btn) => {
+          const btnWidth = parseInt(btn.dataset.width);
+          btn.classList.toggle('active', Math.abs(width - btnWidth) < 50);
+        });
+      }
+
+      function resizeWindow(width, height) {
+        // For testing, we'll resize the parent window
+        window.resizeTo(width, height);
+
+        // Update iframe size to simulate window size
+        const iframe = document.getElementById('appFrame');
+        iframe.style.width = width + 'px';
+
+        setTimeout(updateStatus, 100);
+      }
+
+      // Initial update
       updateStatus();
-    };
-  </script>
-</body>
+
+      // Update on window resize
+      window.addEventListener('resize', updateStatus);
+
+      // Refresh iframe periodically to test changes
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'r' && e.metaKey) {
+          e.preventDefault();
+          document.getElementById('appFrame').src =
+            document.getElementById('appFrame').src;
+        }
+      });
+
+      // Log when iframe loads
+      document.getElementById('appFrame').onload = function () {
+        console.log('App loaded in iframe');
+        updateStatus();
+      };
+    </script>
+  </body>
 </html>
