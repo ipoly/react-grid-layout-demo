@@ -91,7 +91,7 @@ export const Header = ({
   activeRightIcon = '',
   activeRightSubNav = '',
   navigationMode = 'horizontal',
-  containerClassName = 'max-w-[1680px] min-w-[1200px] mx-auto',
+  containerClassName = 'max-w-[1680px] min-w-[1280px] mx-auto',
   containerStyle = {},
 
   // 新的统一导航回调
@@ -1091,96 +1091,98 @@ export const Header = ({
 
             {/* Right side - Icons and User */}
             <div className="flex items-center gap-3">
-              {/* Right Side Icons with hover dropdowns */}
+              {/* Right Side Icons with hover dropdowns (excluding More in sidebar mode) */}
               <div className="flex gap-0.5">
-                {rightSideIcons.map((iconItem) => {
-                  const IconComponent = iconItem.icon;
-                  const isNotifications = iconItem.id === 'notifications';
+                {rightSideIcons
+                  .filter((icon) => icon.id !== 'more')
+                  .map((iconItem) => {
+                    const IconComponent = iconItem.icon;
+                    const isNotifications = iconItem.id === 'notifications';
 
-                  return (
-                    <div key={iconItem.id} className="group relative">
-                      <button
-                        onClick={() => {
-                          const navigation =
-                            NavigationUtils.fromRightIconNavigation(
-                              iconItem.id
-                            );
-                          handleNavigationChange(navigation);
-                        }}
-                        className={`p-2 rounded-md transition-all duration-200 ease-in-out transform ${
-                          iconItem.active
-                            ? 'text-[#4a433c] bg-gray-300 shadow-md ring-1 ring-[#e6e2dc] scale-110'
-                            : 'text-[#b8b1a9] hover:text-[#635a52] hover:bg-[#f8f7f5] hover:scale-105'
-                        }`}
-                      >
-                        <IconComponent className="w-5 h-5" />
-                      </button>
-
-                      {/* Notification badge only for notifications icon */}
-                      {isNotifications && (
-                        <Badge
-                          type="pill-color"
-                          color="error"
-                          size="sm"
-                          className="absolute -top-1 -right-1 w-2 h-2 p-0 min-w-0"
+                    return (
+                      <div key={iconItem.id} className="group relative">
+                        <button
+                          onClick={() => {
+                            const navigation =
+                              NavigationUtils.fromRightIconNavigation(
+                                iconItem.id
+                              );
+                            handleNavigationChange(navigation);
+                          }}
+                          className={`p-2 rounded-md transition-all duration-200 ease-in-out transform ${
+                            iconItem.active
+                              ? 'text-[#4a433c] bg-gray-300 shadow-md ring-1 ring-[#e6e2dc] scale-110'
+                              : 'text-[#b8b1a9] hover:text-[#635a52] hover:bg-[#f8f7f5] hover:scale-105'
+                          }`}
                         >
-                          <span className="sr-only">New notifications</span>
-                        </Badge>
-                      )}
+                          <IconComponent className="w-5 h-5" />
+                        </button>
 
-                      {/* Hover Dropdown for right-side icons with sub-menus */}
-                      {iconItem.hasSubMenu &&
-                        iconItem.subItems &&
-                        iconItem.subItems.length > 0 && (
-                          <div className="absolute top-full right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
-                            {/* Invisible bridge area */}
-                            <div className="h-2 w-full" />
-
-                            {/* Actual dropdown menu */}
-                            <div className="bg-white rounded-lg shadow-lg ring-1 ring-gray-200 py-1 min-w-[200px]">
-                              {iconItem.subItems.map((subItem) => (
-                                <button
-                                  key={subItem.name}
-                                  onClick={() => {
-                                    const navigation =
-                                      NavigationUtils.fromRightIconNavigation(
-                                        iconItem.id,
-                                        subItem.name
-                                      );
-                                    handleNavigationChange(navigation);
-                                  }}
-                                  className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
-                                    subItem.active
-                                      ? 'bg-brand/10 text-brand border-l-2 border-brand'
-                                      : 'text-gray-700 hover:bg-gray-100'
-                                  }`}
-                                >
-                                  <span className="flex items-center">
-                                    {subItem.name}
-                                    {subItem.isExternal && (
-                                      <svg
-                                        className="w-3 h-3 ml-1"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                                        />
-                                      </svg>
-                                    )}
-                                  </span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
+                        {/* Notification badge only for notifications icon */}
+                        {isNotifications && (
+                          <Badge
+                            type="pill-color"
+                            color="error"
+                            size="sm"
+                            className="absolute -top-1 -right-1 w-2 h-2 p-0 min-w-0"
+                          >
+                            <span className="sr-only">New notifications</span>
+                          </Badge>
                         )}
-                    </div>
-                  );
-                })}
+
+                        {/* Hover Dropdown for right-side icons with sub-menus */}
+                        {iconItem.hasSubMenu &&
+                          iconItem.subItems &&
+                          iconItem.subItems.length > 0 && (
+                            <div className="absolute top-full right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-out transform translate-y-2 group-hover:translate-y-0 z-50">
+                              {/* Invisible bridge area */}
+                              <div className="h-2 w-full" />
+
+                              {/* Actual dropdown menu */}
+                              <div className="bg-white rounded-lg shadow-lg ring-1 ring-gray-200 py-1 min-w-[200px]">
+                                {iconItem.subItems.map((subItem) => (
+                                  <button
+                                    key={subItem.name}
+                                    onClick={() => {
+                                      const navigation =
+                                        NavigationUtils.fromRightIconNavigation(
+                                          iconItem.id,
+                                          subItem.name
+                                        );
+                                      handleNavigationChange(navigation);
+                                    }}
+                                    className={`dropdown-item-animate flex w-full items-center px-4 py-2 text-sm transition-colors ${
+                                      subItem.active
+                                        ? 'bg-brand/10 text-brand border-l-2 border-brand'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                  >
+                                    <span className="flex items-center">
+                                      {subItem.name}
+                                      {subItem.isExternal && (
+                                        <svg
+                                          className="w-3 h-3 ml-1"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                          />
+                                        </svg>
+                                      )}
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                      </div>
+                    );
+                  })}
               </div>
 
               {/* User Avatar */}

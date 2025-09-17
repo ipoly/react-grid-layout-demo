@@ -406,7 +406,7 @@ function App() {
           onResetLayout={resetLayout}
           navigationMode={navigationMode}
           onNavigationModeChange={handleNavigationModeChange}
-          containerClassName="w-full"
+          containerClassName="max-w-[1680px] min-w-[1280px] mx-auto"
         />
       </div>
 
