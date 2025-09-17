@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Toggle Test</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .test-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .status {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .status h2 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #374151;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .status-value {
+            font-weight: bold;
+            color: #111827;
+        }
+        .test-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .instructions {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            margin: 0 0 10px 0;
+            color: #92400e;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 5px 0;
+            color: #78350f;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>侧边栏切换测试 / Sidebar Toggle Test</h1>
+
+        <div class="status">
+            <h2>当前状态 / Current Status</h2>
+            <div class="status-item">
+                <span>窗口宽度 / Window Width:</span>
+                <span class="status-value" id="window-width">-</span>
+            </div>
+            <div class="status-item">
+                <span>模式 / Mode:</span>
+                <span class="status-value" id="mode">-</span>
+            </div>
+            <div class="status-item">
+                <span>断点 / Breakpoint (1560px):</span>
+                <span class="status-value" id="breakpoint">-</span>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>测试说明 / Test Instructions</h3>
+            <ol>
+                <li><strong>正常模式 (宽度 ≥ 1560px):</strong>
+                    <ul>
+                        <li>点击 Logo 旁的按钮切换侧边栏显示/隐藏</li>
+                        <li>侧边栏占用布局空间 (280px)</li>
+                    </ul>
+                </li>
+                <li><strong>覆盖模式 (宽度 < 1560px):</strong>
+                    <ul>
+                        <li>点击按钮打开/关闭侧边栏</li>
+                        <li>鼠标悬停在按钮上显示侧边栏</li>
+                        <li>侧边栏覆盖在内容上方，不占用布局空间</li>
+                        <li>有半透明背景遮罩</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="test-actions">
+            <button onclick="resizeWindow(1600)">设置宽度为 1600px (正常模式)</button>
+            <button onclick="resizeWindow(1400)">设置宽度为 1400px (覆盖模式)</button>
+            <button onclick="openApp()">打开应用测试</button>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus() {
+            const width = window.innerWidth;
+            document.getElementById('window-width').textContent = `${width}px`;
+
+            const isOverlayMode = width < 1560;
+            document.getElementById('mode').textContent = isOverlayMode ? '覆盖模式 / Overlay Mode' : '正常模式 / Normal Mode';
+            document.getElementById('breakpoint').textContent = isOverlayMode ? '低于断点 / Below' : '高于断点 / Above';
+        }
+
+        function resizeWindow(width) {
+            if (window.resizeTo) {
+                window.resizeTo(width, window.innerHeight);
+            } else {
+                alert('浏览器不支持调整窗口大小。请手动调整浏览器窗口宽度进行测试。\nBrowser does not support window resizing. Please manually resize the browser window to test.');
+            }
+            setTimeout(updateStatus, 100);
+        }
+
+        function openApp() {
+            window.open('http://localhost:5176/', '_blank');
+        }
+
+        // Initial update
+        updateStatus();
+
+        // Update on resize
+        window.addEventListener('resize', updateStatus);
+    </script>
+</body>
+</html>
