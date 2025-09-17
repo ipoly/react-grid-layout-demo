@@ -357,9 +357,7 @@ function App() {
               activeRightIcon={activeRightIcon}
               activeRightSubNav={activeRightSubNav}
               onNavigationChange={handleNavigationChange}
-              onResetLayout={resetLayout}
               navigationMode={navigationMode}
-              onNavigationModeChange={handleNavigationModeChange}
               containerClassName="w-full"
             />
           </div>
@@ -403,9 +401,7 @@ function App() {
           activeRightIcon={activeRightIcon}
           activeRightSubNav={activeRightSubNav}
           onNavigationChange={handleNavigationChange}
-          onResetLayout={resetLayout}
           navigationMode={navigationMode}
-          onNavigationModeChange={handleNavigationModeChange}
           containerClassName="max-w-[1680px] min-w-[1280px] mx-auto"
         />
       </div>

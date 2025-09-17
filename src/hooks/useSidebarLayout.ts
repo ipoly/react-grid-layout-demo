@@ -15,7 +15,7 @@ export const SIDEBAR_CONSTANTS = {
 export const useSidebarLayout = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isOverlayMode, setIsOverlayMode] = useState(false);
-  const closeTimeoutRef = useRef<NodeJS.Timeout>();
+  const closeTimeoutRef = useRef<NodeJS.Timeout | undefined>();
 
   // Check if overlay mode should be activated based on window width
   useEffect(() => {
