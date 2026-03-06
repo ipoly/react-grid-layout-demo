@@ -1,35 +1,35 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@untitled-ui/components/base/badges/badges';
-import { Button } from '@untitled-ui/components/base/buttons/button';
 import {
-  Calendar,
   CheckCircle,
-  DollarSign,
+  ChevronDown,
+  CircleAlert,
   FileText,
-  Filter,
-  Mail,
-  MessageSquare,
-  MoreHorizontal,
+  GitBranch,
+  MessageCircle,
+  MoreVertical,
+  PanelRight,
+  User,
+  UserCheck,
 } from 'lucide-react';
 
 interface Activity {
   id: string;
-  type: 'note' | 'task' | 'email' | 'file' | 'opportunity' | 'event';
+  type: 'task' | 'signup' | 'workflow' | 'questionnaire' | 'workflow-step';
   user: {
     name: string;
-    avatar?: string;
   };
   action: string;
   target?: string;
   time: string;
   description?: string;
-  progress?: number;
-  tags?: string[];
-  attachments?: Array<{
-    name: string;
-    type: string;
-  }>;
+  dueDate?: string;
+  progress?: {
+    current: number;
+    total: number;
+  };
+  completed?: boolean;
 }
 
 interface ActivitiesProps {
@@ -37,197 +37,121 @@ interface ActivitiesProps {
 }
 
 export const Activities = ({ onReset }: ActivitiesProps) => {
-  const [activeTab, setActiveTab] = useState('Activities');
-  const [visibleCount, setVisibleCount] = useState(4);
-  const [isLoading, setIsLoading] = useState(false);
+  const [visibleCount] = useState(7);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const tabs = ['Activities', 'Tasks', 'Notes', 'Emails', 'Vault', 'Details'];
 
   const activities: Activity[] = [
     {
       id: '1',
-      type: 'note',
-      user: { name: 'Alex Chen' },
-      action: 'created a note for',
-      target: 'Taylor Smith',
-      time: '2 hours ago',
+      type: 'task',
+      user: { name: 'George Wu' },
+      action: 'created a task for',
+      target: 'John Smith',
+      time: '11/17/2025',
       description:
-        "Retirement\n\nThe probability of success refers to the likelihood that a desired outcome will occur in a given situation or experiment. It's a measure of the chance that a particular event or series of events will lead to the intended res...",
-      tags: ['2'],
+        'Review documents in the folder titled Tax Statements. Reach out to John if the required files are missing or incomplete.',
+      dueDate: '09/10/2025',
     },
     {
       id: '2',
-      type: 'note',
-      user: { name: 'Alex Chen' },
-      action: 'created a note for',
-      target: 'Taylor Smith',
-      time: '2 hours ago',
+      type: 'task',
+      user: { name: 'George Wu' },
+      action: 'created a task for',
+      target: 'John Smith',
+      time: '11/17/2025',
       description:
-        'Phone call\n\nSpoke to Taylor today to explain what the probability of success entails. She was concerned with a 50% pos so we scheduled a meeting to review the plan for next week.',
-      tags: ['2'],
+        'Review documents in the folder titled Tax Statements. Reach out to John if the required files are missing or incomplete.',
+      dueDate: '09/10/2025',
     },
     {
       id: '3',
-      type: 'file',
-      user: { name: 'Alex Chen' },
-      action: 'uploaded 3 files under folder Tax / Tax Statements',
-      time: 'One day ago',
-      attachments: [
-        { name: 'September2024Tax.doc', type: 'doc' },
-        { name: 'September2024Tax.png', type: 'png' },
-        { name: 'September2024Tax.png', type: 'png' },
-      ],
-      tags: ['3'],
+      type: 'signup',
+      user: { name: 'John Smith' },
+      action: 'signed up using invitation link',
+      time: '11/17/2025',
     },
     {
       id: '4',
-      type: 'opportunity',
-      user: { name: 'Alex Chen' },
-      action: 'created a financial plan for',
-      target: 'Taylor Smith',
-      time: '2 hours ago',
-      description: 'An express plan was created.',
-      tags: ['2'],
+      type: 'workflow',
+      user: { name: 'John Smith' },
+      action: 'A new workflow was started for',
+      target: 'John Smith',
+      time: '11/17/2025',
+      description: 'The Quarterly review workflow was started.',
     },
     {
       id: '5',
-      type: 'task',
-      user: { name: 'Taylor Smith' },
-      action: 'has been completed.',
-      time: '03/20/2025',
-      description:
-        'A workflow step for Taylor Smith has been completed.\n\nThe [identify opportunity] step of the [Roth conversion] workflow was completed.',
-      progress: 100,
-      tags: ['0'],
+      type: 'questionnaire',
+      user: { name: 'John Smith' },
+      action: "completed Anna's Firm Specific risk questionnaire",
+      time: '11/17/2025',
+      completed: true,
     },
     {
       id: '6',
-      type: 'opportunity',
-      user: { name: 'Alex Chen' },
-      action: 'created a new opportunity.',
-      time: '03/20/2025',
-      description: 'Sam Smith\nTarget close: 4/28/2025',
-      tags: ['0'],
+      type: 'workflow-step',
+      user: { name: 'George Wu' },
+      action: 'completed a workflow step for',
+      target: 'John Smith',
+      time: '11/17/2025',
+      description:
+        'The Convert funds step of the Roth conversion workflow was completed.',
+      progress: {
+        current: 6,
+        total: 6,
+      },
+      completed: true,
     },
     {
       id: '7',
-      type: 'note',
-      user: { name: 'Jordan Davis' },
-      action: 'created a note for',
-      target: 'Wilson Family',
-      time: '4 hours ago',
-      description:
-        'Investment Discussion\n\nDiscussed various investment options with the Wilson family. They are interested in ESG funds and have a moderate risk tolerance. Next steps: prepare portfolio recommendations.',
-      tags: ['1'],
-    },
-    {
-      id: '8',
       type: 'task',
-      user: { name: 'Morgan Lee' },
-      action: 'completed task',
-      time: '5 hours ago',
+      user: { name: 'George Wu' },
+      action: 'completed a task for',
+      target: 'John Smith',
+      time: '11/17/2025',
       description:
-        'Quarterly review completed for Anderson account. All documents have been updated and filed appropriately.',
-      progress: 100,
-      tags: ['0'],
-    },
-    {
-      id: '9',
-      type: 'file',
-      user: { name: 'Casey Rodriguez' },
-      action: 'uploaded 2 files under folder Documents / Estate Planning',
-      time: '6 hours ago',
-      attachments: [
-        { name: 'Estate_Plan_2025.pdf', type: 'pdf' },
-        { name: 'Trust_Documents.docx', type: 'doc' },
-      ],
-      tags: ['2'],
-    },
-    {
-      id: '10',
-      type: 'opportunity',
-      user: { name: 'Alex Chen' },
-      action: 'updated opportunity status for',
-      target: 'Thompson Account',
-      time: '1 day ago',
-      description:
-        'Retirement Planning Opportunity\n\nMoved to proposal stage. Client review scheduled for next week.',
-      tags: ['1'],
-    },
-    {
-      id: '11',
-      type: 'note',
-      user: { name: 'Riley Parker' },
-      action: 'created a note for',
-      target: 'Martinez Family',
-      time: '1 day ago',
-      description:
-        'Risk Assessment\n\nCompleted comprehensive risk assessment. Family shows conservative risk profile with focus on capital preservation. Recommended bond-heavy portfolio allocation.',
-      tags: ['0'],
-    },
-    {
-      id: '12',
-      type: 'task',
-      user: { name: 'Quinn Anderson' },
-      action: 'assigned new task',
-      time: '2 days ago',
-      description:
-        'Follow-up required for Cooper insurance review. Schedule meeting to discuss life insurance needs and policy updates.',
-      progress: 25,
-      tags: ['3'],
+        'Review documents in the folder titled Tax Statements. Reach out to John if the required files are missing or incomplete.',
+      dueDate: '09/10/2025',
+      completed: true,
     },
   ];
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'note':
-        return <MessageSquare className="w-4 h-4" />;
       case 'task':
-        return <CheckCircle className="w-4 h-4" />;
-      case 'email':
-        return <Mail className="w-4 h-4" />;
-      case 'file':
         return <FileText className="w-4 h-4" />;
-      case 'opportunity':
-        return <DollarSign className="w-4 h-4" />;
-      case 'event':
-        return <Calendar className="w-4 h-4" />;
+      case 'signup':
+        return <User className="w-4 h-4" />;
+      case 'workflow':
+        return <GitBranch className="w-4 h-4" />;
+      case 'questionnaire':
+        return <UserCheck className="w-4 h-4" />;
+      case 'workflow-step':
+        return <GitBranch className="w-4 h-4" />;
       default:
-        return <MessageSquare className="w-4 h-4" />;
+        return <FileText className="w-4 h-4" />;
     }
   };
 
   const getActivityColor = (type: string) => {
     switch (type) {
-      case 'note':
-        return 'bg-yellow-100 text-yellow-600';
       case 'task':
-        return 'bg-blue-100 text-blue-600';
-      case 'email':
-        return 'bg-purple-100 text-purple-600';
-      case 'file':
-        return 'bg-blue-100 text-blue-600';
-      case 'opportunity':
-        return 'bg-green-100 text-green-600';
-      case 'event':
-        return 'bg-purple-100 text-purple-600';
+        return 'bg-blue-50 text-blue-600';
+      case 'signup':
+        return 'bg-purple-50 text-purple-600';
+      case 'workflow':
+        return 'bg-orange-50 text-orange-600';
+      case 'questionnaire':
+        return 'bg-purple-50 text-purple-600';
+      case 'workflow-step':
+        return 'bg-orange-50 text-orange-600';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-gray-50 text-gray-600';
     }
   };
 
-  // 模拟加载更多功能
-  const loadMore = useCallback(async () => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setVisibleCount((prev) => Math.min(prev + 4, activities.length));
-    setIsLoading(false);
-  }, [activities.length]);
-
   // 获取当前显示的活动
   const visibleActivities = activities.slice(0, visibleCount);
-  const hasMore = visibleCount < activities.length;
 
   // 监听内容变化，触发网格重新计算
   useEffect(() => {
@@ -251,10 +175,9 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
     };
   }, [visibleCount]);
 
-  // 重置 Activities 状态
+  // 重置 Activities 状态（目前不需要重置，因为使用固定数量）
   const resetActivities = useCallback(() => {
-    setVisibleCount(4);
-    setIsLoading(false);
+    // 可在此处添加重置逻辑
   }, []);
 
   // 向父组件暴露重置函数
@@ -281,158 +204,167 @@ export const Activities = ({ onReset }: ActivitiesProps) => {
       ref={containerRef}
       className="bg-white rounded-lg border border-gray-200 h-full flex flex-col"
     >
-      {/* Header with tabs */}
-      <div className="border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 gap-4">
-          <div className="flex space-x-4 sm:space-x-6 overflow-x-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`text-sm font-medium pb-2 border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab
-                    ? 'text-blue-600 border-blue-600'
-                    : 'text-gray-600 border-transparent hover:text-gray-900'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-gray-200">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Activities</h2>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+            <div className="relative">
+              <select className="w-full px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option>All categories</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button color="primary" size="sm" iconLeading={Filter}>
-              <span className="hidden sm:inline">Filters</span>
-              <span className="sm:hidden">Filter</span>
-            </Button>
-            <Button
-              color="tertiary"
-              size="sm"
-              iconLeading={MoreHorizontal}
-              className="p-2"
-            />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Household
+            </label>
+            <div className="relative">
+              <select className="w-full px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option>All households</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date
+            </label>
+            <div className="relative">
+              <select className="w-full px-3 py-2 text-sm text-gray-500 bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option>All time</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Activities content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 sm:p-5 space-y-4 sm:space-y-6 transition-all duration-500 ease-out">
-          {visibleActivities.map((activity, index) => (
+        <div className="divide-y divide-gray-100">
+          {visibleActivities.map((activity) => (
             <div
               key={activity.id}
-              className="flex space-x-3 sm:space-x-4 animate-in fade-in slide-in-from-bottom-2 duration-500"
-              style={{
-                animationDelay:
-                  index >= visibleCount - 4
-                    ? `${(index - (visibleCount - 4)) * 100}ms`
-                    : '0ms',
-              }}
+              className="group px-6 py-4 hover:bg-gray-50 transition-colors relative"
             >
-              {/* Activity icon */}
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getActivityColor(activity.type)}`}
-              >
-                {getActivityIcon(activity.type)}
-              </div>
-
-              {/* Activity content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-gray-900 mb-1">
-                      <span className="font-medium">{activity.user.name}</span>{' '}
-                      {activity.action}
-                      {activity.target && (
-                        <span className="font-medium"> {activity.target}</span>
-                      )}
+              {/* Top right action bar */}
+              <div className="absolute -top-3 right-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white rounded-md shadow-sm p-1">
+                <div className="relative group/tooltip">
+                  <button className="p-1 hover:bg-gray-100 rounded flex items-center justify-center">
+                    <PanelRight className="w-4 h-4 text-gray-500" />
+                  </button>
+                  {/* View details tooltip */}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    <div className="bg-gray-900 text-white text-sm px-2 py-1 rounded shadow-lg">
+                      View details
                     </div>
-
-                    {activity.description && (
-                      <div className="text-sm text-gray-600 mb-3 whitespace-pre-line">
-                        {activity.description}
-                      </div>
-                    )}
-
-                    {activity.progress !== undefined && (
-                      <div className="mb-3">
-                        <div className="flex justify-between text-xs text-gray-600 mb-1">
-                          <span>Progress</span>
-                          <span>{activity.progress}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full"
-                            style={{ width: `${activity.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    )}
-
-                    {activity.attachments && (
-                      <div className="space-y-2 mb-3">
-                        {activity.attachments.map((attachment, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center space-x-2 text-sm"
-                          >
-                            <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                            <span className="text-blue-600 truncate">
-                              {attachment.name}
-                            </span>
-                            {index === activity.attachments!.length - 1 &&
-                              activity.attachments!.length > 1 && (
-                                <Badge type="pill-color" color="gray" size="sm">
-                                  +{activity.attachments!.length - 1}
-                                </Badge>
-                              )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between sm:justify-end space-x-3">
-                    {activity.tags && (
-                      <div className="flex space-x-1">
-                        {activity.tags.map((tag, index) => (
-                          <Badge
-                            key={index}
-                            type="pill-color"
-                            color="gray"
-                            size="sm"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                    <span className="text-xs text-gray-500 whitespace-nowrap">
-                      {activity.time}
-                    </span>
                   </div>
                 </div>
+                <button className="p-1 hover:bg-gray-100 rounded flex items-center justify-center">
+                  <MessageCircle className="w-4 h-4 text-gray-500" />
+                </button>
+                <button className="p-1 hover:bg-gray-100 rounded flex items-center justify-center">
+                  <MoreVertical className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* Activity icon */}
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 relative ${getActivityColor(activity.type)}`}
+                >
+                  {getActivityIcon(activity.type)}
+                  {activity.completed && (
+                    <CheckCircle className="absolute w-3 h-3 text-green-600 bg-white rounded-full -bottom-0.5 -right-0.5" />
+                  )}
+                </div>
+
+                {/* Activity content with text and date on same line */}
+                <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold text-gray-900">
+                        {activity.user.name}
+                      </span>{' '}
+                      {activity.action}
+                      {activity.target && (
+                        <>
+                          {' '}
+                          <span className="font-semibold text-gray-900">
+                            {activity.target}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Date aligned with text */}
+                  <div className="text-xs text-gray-500 flex-shrink-0">
+                    {activity.time}
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional content below icon */}
+              <div className="ml-[52px] pr-24">
+                {/* Description */}
+                {activity.description && (
+                  <p className="text-sm text-gray-600 mt-2 mb-3">
+                    {activity.description}
+                  </p>
+                )}
+
+                {/* Due date badge */}
+                {activity.dueDate && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge
+                      type="pill-color"
+                      color="error"
+                      size="sm"
+                      className="text-xs"
+                    >
+                      <CircleAlert className="w-3 h-3 mr-1" />
+                      {activity.dueDate}
+                    </Badge>
+                  </div>
+                )}
+
+                {/* Progress bar */}
+                {activity.progress && (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-600">
+                        {activity.description?.split('.')[0]}
+                      </span>
+                      <span className="text-xs text-gray-600">
+                        Steps {activity.progress.current}/
+                        {activity.progress.total}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-green-500 h-2 rounded-full transition-all"
+                        style={{
+                          width: `${(activity.progress.current / activity.progress.total) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Sticky Show More 按钮 */}
-      {(hasMore || isLoading) && (
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 text-center animate-in fade-in duration-300">
-          <Button
-            color="link-color"
-            size="sm"
-            className={`text-blue-600 transition-all duration-200 ${
-              isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
-            }`}
-            onClick={loadMore}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Loading...' : 'Show more'}
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
