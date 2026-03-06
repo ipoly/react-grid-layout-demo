@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'option-a', 'option-b']
   workflow_dispatch:
 
 permissions:
@@ -18,8 +18,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -40,10 +42,53 @@ jobs:
       - name: Run format check
         run: pnpm run format:check
 
-      - name: Build
+      - name: Build main
         run: pnpm run build
         env:
           NODE_ENV: production
+
+      - name: Save main build
+        run: |
+          mkdir -p final-dist
+          cp -r dist/* final-dist/
+
+      - name: Checkout option-a
+        uses: actions/checkout@v4
+        with:
+          ref: option-a
+          clean: false
+
+      - name: Install dependencies (option-a)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build option-a
+        run: pnpm run build --base=/react-grid-layout-demo/option-a/
+        env:
+          NODE_ENV: production
+
+      - name: Save option-a build
+        run: |
+          mkdir -p final-dist/option-a
+          cp -r dist/* final-dist/option-a/
+
+      - name: Checkout option-b
+        uses: actions/checkout@v4
+        with:
+          ref: option-b
+          clean: false
+
+      - name: Install dependencies (option-b)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build option-b
+        run: pnpm run build --base=/react-grid-layout-demo/option-b/
+        env:
+          NODE_ENV: production
+
+      - name: Save option-b build
+        run: |
+          mkdir -p final-dist/option-b
+          cp -r dist/* final-dist/option-b/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -51,7 +96,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: './final-dist'
 
   deploy:
     environment:
